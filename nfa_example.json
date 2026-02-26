@@ -1,0 +1,51 @@
+{
+  "ap": ["p", "q"],
+  "initial_state": "ini_s0",
+  "states": [
+    {
+      "id": "ini_s0",
+      "transitions": [
+        { "dst": "s0", "cond": "p & q" },
+        { "dst": "s_sink", "cond": "!(p & q)" }
+      ]
+    },
+    {
+      "id": "s0",
+      "transitions": [
+        { "dst": "s0", "cond": "p & q" },
+        { "dst": "s1", "cond": "p & (!q)" },
+        { "dst": "s2", "cond": "q & (!p)" },
+        { "dst": "s_sink", "cond": "(!p) & (!q)" }
+      ]
+    },
+    {
+      "id": "s1",
+      "transitions": [
+        { "dst": "s1", "cond": "p & (!q)" },
+        { "dst": "s_sink", "cond": "!p | (p & !q)" }
+      ]
+    },
+    {
+      "id": "s2",
+      "transitions": [
+        { "dst": "s2", "cond": "q & (!p)" },
+        { "dst": "s_sink", "cond": "(p & q) | ((!p) & (!q))" },
+        { "dst": "s3", "cond": "p & (!q)" }
+      ]
+    },
+    {
+      "id": "s3",
+      "transitions": [
+        { "dst": "s3", "cond": "p & (!q)" },
+        { "dst": "s_sink", "cond": "(p & q) | !p" }
+      ]
+    },
+    {
+      "id": "s_sink",
+      "transitions": [
+        { "dst": "s_sink", "cond": "1" }
+      ]
+    }
+  ],
+  "accepting_states": ["ini_s0", "s0", "s1", "s2", "s3"]
+}

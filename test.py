@@ -3,6 +3,7 @@ import buddy
 import itertools
 import os
 import re
+import json
 
 def get_valuation_string(cond, ap_names, ap_bdds):
     """
@@ -38,11 +39,8 @@ def print_nfa(aut, accepting_states):
     ap_names = aut.ap()
     # Pre-calculate BDD variables for APs
     ap_bdds = [buddy.bdd_ithvar(aut.register_ap(ap)) for ap in ap_names]
-
-    # Check if there are any APs to avoid issues with empty iterators if AP set is empty
+    
     if not ap_names:
-        # Handle case with no atomic propositions if necessary,
-        # otherwise the loop over product below handles the empty case correctly (1 iteration of empty tuple)
         pass
 
     for s in range(aut.num_states()):
@@ -131,6 +129,59 @@ def save_and_visualize(aut, filename, custom_accepting_states):
     except Exception as e:
         print(f"Could not run dot: {e}")
 
+def load_nfa_from_json(json_file):
+    import json
+    with open(json_file, 'r') as f:
+        data = json.load(f)
+    
+    bdd_dict = spot.make_bdd_dict()
+    aut = spot.make_twa_graph(bdd_dict)
+    
+    # Map external IDs (strings/ints) to internal Spot state IDs (ints)
+    id_map = {} 
+    
+    # 1. First Pass: Create all states
+    for state_info in data['states']:
+        external_id = state_info['id']
+        spot_id = aut.new_state()
+        id_map[external_id] = spot_id
+        
+    aut.set_init_state(id_map[data['initial_state']])
+    
+    # 2. Second Pass: Add transitions
+    for state_info in data['states']:
+        src_spot_id = id_map[state_info['id']]
+        
+        for trans in state_info.get('transitions', []):
+            dst_external_id = trans['dst']
+            cond_str = trans['cond']
+            
+            # Resolve destination ID
+            if dst_external_id not in id_map:
+                raise ValueError(f"Transition to unknown state: {dst_external_id}")
+            dst_spot_id = id_map[dst_external_id]
+
+            # Parse formula string to BDD
+            f = spot.formula(cond_str)
+            # Register APs used in this formula
+            for ap in spot.atomic_prop_collect(f):
+                aut.register_ap(ap)
+            
+            # Convert formula to BDD 
+            cond_bdd = spot.formula_to_bdd(f, aut.get_dict(), aut)
+            
+            aut.new_edge(src_spot_id, dst_spot_id, cond_bdd)
+            
+    # Remap accepting states
+    accepting_states = set()
+    for acc_id in data.get('accepting_states', []):
+        if acc_id in id_map:
+            accepting_states.add(id_map[acc_id])
+        else:
+            print(f"Warning: Accepting state {acc_id} not found in state list.")
+        
+    return aut, accepting_states
+
 def process_formula(formula_str, filename_prefix, is_negated=False):
     """
     Full pipeline: Translate -> Analyze -> Visualize
@@ -139,7 +190,7 @@ def process_formula(formula_str, filename_prefix, is_negated=False):
     if is_negated:
         f = spot.formula.Not(f)
         
-    print(f"\n--- Processing: {f} ---")
+    print(f"\n--- Processing Formula: {f} ---")
     
     aut = spot.translate(f, 'BA', 'complete')
     
@@ -170,6 +221,15 @@ def main():
 
     # Process Positive Case
     process_formula(phi_str, "positive_nfa", is_negated=False)
+    
+    # Example: Loading from JSON
+    json_path = "nfa_example.json"
+    if os.path.exists(json_path):
+        print("\n" + "="*40 + "\n")
+        print(f"Loading custom NFA from {json_path}...")
+        custom_aut, custom_acc = load_nfa_from_json(json_path)
+        print_nfa(custom_aut, custom_acc)
+        save_and_visualize(custom_aut, "custom_nfa", custom_acc)
 
 if __name__ == "__main__":
     main()
