@@ -1,0 +1,26 @@
+{
+  "ap": ["p", "q"],
+  "initial_state": "s0",
+  "states": [
+    {
+      "id": "s0",
+      "labels": ["p", "q"],
+      "successors": ["s0", "s1", "s2"]
+    },
+    {
+      "id": "s1",
+      "labels": ["p"],
+      "successors": ["s1"]
+    },
+    {
+      "id": "s2",
+      "labels": ["q"],
+      "successors": ["s2", "s3"]
+    },
+    {
+      "id": "s3",
+      "labels": ["p"],
+      "successors": ["s3"]
+    }
+  ]
+}
