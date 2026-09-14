@@ -1,0 +1,45 @@
+{
+  "name": "Revised running example (Section 6.1, Figure 5)",
+  "ap": ["p", "q"],
+  "agents": ["a", "b", "c"],
+  "actions": {
+    "a": ["in", "out", "idle"],
+    "b": ["in", "out", "idle"],
+    "c": ["in", "out"]
+  },
+  "initial_state": "s0",
+  "states": [
+    {
+      "id": "s0",
+      "labels": ["p", "q"],
+      "transitions": [
+        {"to": "s0", "profiles": [["*", "*", "in"]]},
+        {"to": "s1", "profiles": [["in", "in", "out"], ["in", "out", "out"], ["out", "in", "out"]]},
+        {"to": "s2", "profiles": [["out", "out", "out"], ["idle", "*", "*"], ["*", "idle", "*"]]}
+      ]
+    },
+    {
+      "id": "s1",
+      "labels": ["p"],
+      "transitions": [
+        {"to": "s1", "profiles": [["idle", "*", "*"], ["in", "*", "*"]]},
+        {"to": "s2", "profiles": [["out", "*", "*"]]}
+      ]
+    },
+    {
+      "id": "s2",
+      "labels": ["q"],
+      "transitions": [
+        {"to": "s2", "profiles": [["in", "in", "*"], ["idle", "*", "*"], ["*", "idle", "*"]]},
+        {"to": "s3", "profiles": [["in", "out", "*"], ["out", "in", "*"], ["out", "out", "*"]]}
+      ]
+    },
+    {
+      "id": "s3",
+      "labels": ["p"],
+      "transitions": [
+        {"to": "s3", "profiles": [["*", "*", "*"]]}
+      ]
+    }
+  ]
+}

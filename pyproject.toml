@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "strategy-monitor"
+version = "1.0.0"
+description = "Runtime strategy monitoring of multi-agent systems modelled as concurrent game structures"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+# ATL model checking and NatATL strategy synthesis, used by RepairPipeline.
+# VITAMIN 1.6+ declares requires-python >= 3.11; on 3.10 install its wheel with
+#   pip install --ignore-requires-python vitamin-model-checker
+vitamin = ["vitamin-model-checker>=1.6"]
+test = ["pytest>=7"]
+
+[project.scripts]
+strategy-monitor = "strategy_monitor.cli:main"
+
+[tool.setuptools]
+packages = ["strategy_monitor"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

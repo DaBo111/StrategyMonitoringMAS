@@ -1,0 +1,27 @@
+{
+  "_comment": "The 1-bounded strategy of the Section 5.2 example.",
+  "type": "k_bounded",
+  "coalition": [
+    "a",
+    "b"
+  ],
+  "k": 1,
+  "table": {
+    "s0": {
+      "a": "in",
+      "b": "in"
+    },
+    "s1": {
+      "a": "out",
+      "b": "out"
+    },
+    "s2": {
+      "a": "out",
+      "b": "out"
+    },
+    "s3": {
+      "a": "out",
+      "b": "out"
+    }
+  }
+}

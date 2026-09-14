@@ -1,0 +1,20 @@
+{
+  "_comment": "Actions only; the states are replayed through delta.",
+  "actions": [
+    [
+      "in",
+      "in",
+      "in"
+    ],
+    [
+      "in",
+      "in",
+      "out"
+    ],
+    [
+      "out",
+      "out",
+      "in"
+    ]
+  ]
+}

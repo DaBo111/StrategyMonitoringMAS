@@ -1,0 +1,22 @@
+{
+  "_comment": "Gamma_{a} of the Section 6.1 example, for the revised model.",
+  "type": "k_bounded",
+  "coalition": [
+    "a"
+  ],
+  "k": 1,
+  "table": {
+    "s0": {
+      "a": "in"
+    },
+    "s1": {
+      "a": "out"
+    },
+    "s2": {
+      "a": "out"
+    },
+    "s3": {
+      "a": "in"
+    }
+  }
+}

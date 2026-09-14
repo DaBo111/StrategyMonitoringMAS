@@ -1,0 +1,20 @@
+{
+  "_comment": "delta(s0,(in,in,out)) = s1, but the system is seen to go to s3.",
+  "states": [
+    "s0",
+    "s3",
+    "s3"
+  ],
+  "actions": [
+    [
+      "in",
+      "in",
+      "out"
+    ],
+    [
+      "in",
+      "in",
+      "in"
+    ]
+  ]
+}

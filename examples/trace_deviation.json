@@ -1,0 +1,15 @@
+{
+  "_comment": "Agent a plays out at s0, where the strategy prescribes in.",
+  "actions": [
+    [
+      "in",
+      "in",
+      "in"
+    ],
+    [
+      "out",
+      "in",
+      "out"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "_comment": "Visits every state of the revised model, complying throughout.",
+  "actions": [
+    [
+      "in",
+      "in",
+      "out"
+    ],
+    [
+      "out",
+      "in",
+      "in"
+    ],
+    [
+      "out",
+      "out",
+      "in"
+    ],
+    [
+      "in",
+      "in",
+      "in"
+    ]
+  ]
+}

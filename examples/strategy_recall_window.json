@@ -1,0 +1,30 @@
+{
+  "_comment": "Recall strategy over the last three observations: 'the third label from the end satisfies p'. Determinising it costs 2^3 states; the NFA stays linear.",
+  "type": "natural_recall",
+  "coalition": [
+    "a",
+    "b"
+  ],
+  "regexes": {
+    "a": [
+      [
+        ".*[p]..",
+        "out"
+      ],
+      [
+        ".*",
+        "in"
+      ]
+    ],
+    "b": [
+      [
+        ".*[p]..",
+        "out"
+      ],
+      [
+        ".*",
+        "in"
+      ]
+    ]
+  }
+}

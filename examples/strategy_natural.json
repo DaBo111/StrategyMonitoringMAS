@@ -1,0 +1,38 @@
+{
+  "_comment": "gamma^Natr of the Section 5.4 example: ((p,in),(q,out),(true,idle)).",
+  "type": "natural_memoryless",
+  "coalition": [
+    "a",
+    "b"
+  ],
+  "rules": {
+    "a": [
+      [
+        "p",
+        "in"
+      ],
+      [
+        "q",
+        "out"
+      ],
+      [
+        "true",
+        "idle"
+      ]
+    ],
+    "b": [
+      [
+        "p",
+        "in"
+      ],
+      [
+        "q",
+        "out"
+      ],
+      [
+        "true",
+        "idle"
+      ]
+    ]
+  }
+}

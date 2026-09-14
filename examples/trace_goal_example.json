@@ -1,0 +1,15 @@
+{
+  "_comment": "omega = s0 (in,in,out) s1 (in,in,in) of the Section 6.2 example.",
+  "actions": [
+    [
+      "in",
+      "in",
+      "out"
+    ],
+    [
+      "in",
+      "in",
+      "in"
+    ]
+  ]
+}

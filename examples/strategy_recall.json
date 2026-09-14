@@ -1,0 +1,30 @@
+{
+  "_comment": "A natural strategy with recall: once q has been seen, play out forever.",
+  "type": "natural_recall",
+  "coalition": [
+    "a",
+    "b"
+  ],
+  "regexes": {
+    "a": [
+      [
+        ".*[q].*",
+        "out"
+      ],
+      [
+        ".*",
+        "in"
+      ]
+    ],
+    "b": [
+      [
+        ".*[q].*",
+        "out"
+      ],
+      [
+        ".*",
+        "in"
+      ]
+    ]
+  }
+}

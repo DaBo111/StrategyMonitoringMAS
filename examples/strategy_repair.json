@@ -1,0 +1,30 @@
+{
+  "_comment": "Play in wherever p holds; used to drive the Section 7 repair pipeline.",
+  "type": "natural_memoryless",
+  "coalition": [
+    "a",
+    "b"
+  ],
+  "rules": {
+    "a": [
+      [
+        "p",
+        "in"
+      ],
+      [
+        "true",
+        "idle"
+      ]
+    ],
+    "b": [
+      [
+        "p",
+        "in"
+      ],
+      [
+        "true",
+        "idle"
+      ]
+    ]
+  }
+}
