@@ -3,12 +3,12 @@
 Given a coalition strategy and an LTL goal, this answers: does *every* run in
 which the coalition follows the strategy satisfy the goal, whatever the other
 agents do?  That is the question strategy synthesis is supposed to answer, and
-the one the repair procedure of Section 7 asks before adopting a replacement.
+the one the repair procedure asks before adopting a replacement.
 
 The check restricts the CGS to the strategy -- ``d(s, a)`` becomes exactly the
 prescribed action for each coalition member, and is left alone for everyone
-else -- and then model-checks the goal on the result.  It reuses the automata of
-Section 6.2, so it needs nothing beyond this package:
+else -- and then model-checks the goal on the result.  It reuses the automata
+of the goal monitor, so it needs nothing beyond this package:
 
 * the restricted model becomes a Buchi automaton (every state accepting);
 * the *negated* goal becomes a Buchi automaton;
@@ -18,7 +18,7 @@ Section 6.2, so it needs nothing beyond this package:
 Two consequences are worth stating.  It is exact -- no idling is smuggled in, so
 it neither over- nor under-approximates the strategy -- and it takes the full
 LTL grammar, including the nested ``X`` that VITAMIN's ATL parser rejects.  So
-the paper's own goal ``G(p | (q & X p))`` can be checked directly, rather than
+the own goal ``G(p | (q & X p))`` can be checked directly, rather than
 being weakened to something ATL can express.
 """
 
@@ -72,7 +72,7 @@ def prescribed_actions(cgs: CGS, strategy) -> Dict[str, Dict[str, str]]:
     """``state -> agent -> action`` for a memoryless strategy.
 
     Raises when the strategy has memory, or leaves a *reachable* state
-    unprescribed.  Section 5.3 defines a strategy as a function, but a gate list
+    unprescribed.  A strategy is defined as a function, but a gate list
     that is silent on states no compliant run ever visits still determines every
     run there is, so it is accepted and the unreachable entries are filled in.
     """

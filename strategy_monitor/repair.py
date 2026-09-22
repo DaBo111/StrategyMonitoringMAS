@@ -1,4 +1,4 @@
-"""Strategy repair -- Section 7.
+"""Strategy repair.
 
 The monitoring framework detects two kinds of failure, and each gets its own
 repair branch:
@@ -6,18 +6,18 @@ repair branch:
 * a **coalition strategy violation** (verdict ``bot``): some agent ``i in A``
   deviated.  The system is paused, ``i`` is excluded giving ``A' = A \\ {i}``,
   and synthesis is re-run for ``A'`` with the current state ``q_curr`` as the
-  new initial state (Section 7.1).
+  new initial state.
 * a **model violation** (the trace took a transition the CGS does not contain,
   which the goal monitor reports as ``bot^M``): the offending pair
   ``(s, alpha)`` and its actual successor ``s'`` are recorded, ``delta`` is
   replaced by ``delta'`` agreeing with ``delta`` everywhere except at
   ``(s, alpha)``, and synthesis is re-run on the updated model ``G'`` from
-  ``q_curr`` (Section 7.2).
+  ``q_curr``.
 
 After either repair the monitors are rebuilt on the current model re-pointed at
-``q_curr`` and execution resumes under them, which is the loop of Figure 7.
+``q_curr`` and execution resumes under them, which is the repair loop.
 Both branches assume the system can be paused while re-synthesis runs; the
-remark of Section 7 flags this as an assumption, and it is made explicit here as
+remark flags this as an assumption, and it is made explicit here as
 the :attr:`RepairPipeline.paused` flag.  When no winning strategy remains there
 is nothing left for the monitor to check, so monitoring stops and the failure is
 reported.
@@ -54,7 +54,7 @@ class RepairOutcome(Enum):
     COALITION_REPAIRED = "coalition-repaired"
     MODEL_REPAIRED = "model-repaired"
     FAILED = "failed"
-    """No winning strategy remains; monitoring stops (Sections 7.1, 7.2)."""
+    """No winning strategy remains; monitoring stops."""
 
     STOPPED = "stopped"
     """The pipeline had already given up before this step."""
@@ -62,7 +62,7 @@ class RepairOutcome(Enum):
 
 @dataclass
 class RepairEvent:
-    """One pass through the repair pipeline of Figure 7."""
+    """One pass through the repair pipeline."""
 
     step: int
     kind: ViolationKind
@@ -91,7 +91,7 @@ def vitamin_synthesiser(objective: str, k: int = 2, rename_idle: bool = True) ->
     ``objective`` is the ATL path formula the coalition must enforce, e.g.
     ``G(p || q)``.  It is deliberately separate from the LTL goal handed to the
     goal-oriented monitor: VITAMIN's ATL parser accepts only one temporal
-    operator directly under the coalition modality, so the paper's
+    operator directly under the coalition modality, so the
     ``G(p | (q & X p))`` cannot be used for synthesis even though it is exactly
     what ``M^G`` monitors.
 
@@ -137,7 +137,7 @@ def fixed_synthesiser(strategy: Optional[NaturalMemorylessStrategy]) -> Synthesi
 
 
 class RepairPipeline:
-    """The loop of Figure 7: run, monitor, classify, repair, resume.
+    """The repair loop: run, monitor, classify, repair, resume.
 
     The pipeline owns the model, the coalition and the current strategy, and
     rebuilds its :class:`~strategy_monitor.suite.MonitorSuite` whenever either
@@ -148,9 +148,9 @@ class RepairPipeline:
     whichever are present:
 
     * with a strategy, a deviation is attributed to an agent and the coalition
-      branch of Section 7.1 runs;
+      branch runs;
     * with or without one, an observed transition the CGS does not contain
-      triggers the model branch of Section 7.2 -- that check compares the
+      triggers the model branch -- that check compares the
       successor against ``delta`` directly, so it needs neither the strategy
       monitor nor the goal monitor.
 
@@ -235,8 +235,8 @@ class RepairPipeline:
         """Observe ``s_j``, then the action ``alpha_j`` played in it.
 
         A step is checked twice: first that the transition that produced
-        ``state`` is one the model contains (Section 7.2), then that the action
-        played in it follows the strategy (Section 7.1).  Both checks can fire
+        ``state`` is one the model contains, then that the action
+        played in it follows the strategy.  Both checks can fire
         in the same step -- a model repair leaves the system paused at
         ``q_curr``, so the action observed there is judged against whatever
         strategy the repair adopted.
@@ -329,7 +329,7 @@ class RepairPipeline:
     # -- repair branches ---------------------------------------------------
 
     def _repair_coalition(self, violations: Sequence[Violation]) -> RepairOutcome:
-        """Section 7.1: exclude the deviating agent and re-synthesise for ``A'``."""
+        """Coalition repair: exclude the deviating agent and re-synthesise for ``A'``."""
         self.paused = True
         culprit = violations[0].agent
         detail = "; ".join(str(v) for v in violations)
@@ -367,7 +367,7 @@ class RepairPipeline:
         return RepairOutcome.COALITION_REPAIRED
 
     def _repair_model(self, deviation: ModelDeviation) -> RepairOutcome:
-        """Section 7.2: absorb the observed transition into ``delta'``, then re-synthesise."""
+        """Model repair: absorb the observed transition into ``delta'``, then re-synthesise."""
         self.paused = True
         added = None
         if deviation.profile:

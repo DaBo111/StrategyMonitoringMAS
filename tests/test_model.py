@@ -133,7 +133,7 @@ class TestCGS:
 
 
 class TestModelRepairPrimitive:
-    """``delta'`` of Section 7.2."""
+    """``delta'``"""
 
     def test_redirecting_one_pair_leaves_the_rest_alone(self, running_example):
         updated = running_example.with_transition("s0", ("in", "in", "out"), "s3")
@@ -163,7 +163,7 @@ class TestModelRepairPrimitive:
 
 
 class TestTrace:
-    def test_length_follows_the_paper(self, running_example):
+    def test_length_follows_the_definition(self, running_example):
         trace = replay(running_example, [("in", "in", "in"), ("in", "in", "out")])
         assert trace.state_projection == ("s0", "s0", "s1")
         assert len(trace.action_projection) == 2
@@ -223,13 +223,15 @@ class TestGates:
         assert isinstance(parse_gate(""), Top)
         assert isinstance(parse_gate("*"), Top)
 
-    def test_complexity_counts_variable_occurrences(self):
-        # |phi| of Section 5.3
+    def test_complexity_counts_symbols(self):
+        # |phi|: one per syntax-tree node, operators included.
         assert parse_gate("p").complexity == 1
-        assert parse_gate("!p").complexity == 1
-        assert parse_gate("p & q").complexity == 2
-        assert parse_gate("p & p").complexity == 2
-        assert parse_gate("true").complexity == 0
+        assert parse_gate("!p").complexity == 2          # Not, Var
+        assert parse_gate("p & q").complexity == 3       # And, Var, Var
+        assert parse_gate("p & p").complexity == 3
+        # top costs 1, not 0 -- which is what makes the gate count of a
+        # strategy bounded by its complexity.
+        assert parse_gate("true").complexity == 1
 
     def test_and_binds_tighter_than_or(self):
         gate = parse_gate("p | q & r")
@@ -258,7 +260,9 @@ class TestDeepGates:
         gate = self.wide(width)
         assert gate.evaluate(frozenset(["p0"])) is True
         assert gate.evaluate(frozenset(["p1"])) is False
-        assert gate.complexity == 2 * width
+        # Each "(p0 | !p1)" is 4 symbols (Or, Var, Not, Var), joined by
+        # width - 1 conjunctions.
+        assert gate.complexity == 5 * width - 1
         assert len(str(gate)) > width
 
     def test_fallback_agrees_with_recursion(self):
@@ -290,7 +294,7 @@ class TestDeepGates:
 
 
 class TestRegex:
-    def test_complexity_follows_the_paper(self):
+    def test_complexity_follows_the_definition(self):
         # ||top* r|| = ||r||, ||top*|| = 1, ||r|| = |r|
         assert regex_complexity(".*") == 1
         assert regex_complexity(".*[p]") == 1

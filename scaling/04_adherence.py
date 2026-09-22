@@ -1,4 +1,4 @@
-"""Proposition 6: the strategy-adherence monitor M^S.
+"""The strategy-adherence monitor M^S.
 
     construction O(|S|^k x |A| + |S|.|E|) time, O(|S|^k) space
     runtime      O(|A| x |omega|), the verdict test n[s_cur] = 0 worst-case O(1)

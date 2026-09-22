@@ -1,4 +1,4 @@
-"""Shared fixtures: the two worked examples of the paper."""
+"""Shared fixtures: the two worked examples."""
 
 import os
 import sys
@@ -20,19 +20,19 @@ from strategy_monitor.strategies import (  # noqa: E402
 
 @pytest.fixture(scope="session")
 def running_example():
-    """``G_E`` of Section 5.1 (Figure 1)."""
+    """``G_E``, the running example."""
     return CGS.from_json(os.path.join(EXAMPLES, "running_example.json"))
 
 
 @pytest.fixture(scope="session")
 def revised_example():
-    """The revised structure of Section 6.1 (Figure 5)."""
+    """The revised structure."""
     return CGS.from_json(os.path.join(EXAMPLES, "revised_example.json"))
 
 
 @pytest.fixture
-def paper_memoryless_strategy():
-    """The 1-bounded strategy of the Section 5.2 example."""
+def example_memoryless_strategy():
+    """The 1-bounded strategy of the k-bounded example."""
     return KBoundedStrategy.memoryless(
         ["a", "b"],
         {
@@ -45,8 +45,8 @@ def paper_memoryless_strategy():
 
 
 @pytest.fixture
-def paper_natural_strategy():
-    """``gamma^Natr`` of the Section 5.4 example."""
+def example_natural_strategy():
+    """``gamma^Natr`` of the natural memoryless example."""
     return NaturalMemorylessStrategy.build(
         ["a", "b"],
         {
@@ -58,7 +58,7 @@ def paper_natural_strategy():
 
 @pytest.fixture
 def adherence_strategy():
-    """``Gamma_{a}`` of the Section 6.1 example."""
+    """``Gamma_{a}`` of the strategy-adherence example."""
     return KBoundedStrategy.memoryless(
         ["a"], {"s0": {"a": "in"}, "s1": {"a": "out"}, "s2": {"a": "out"}, "s3": {"a": "in"}}
     )

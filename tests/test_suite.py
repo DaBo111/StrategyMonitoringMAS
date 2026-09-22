@@ -55,13 +55,13 @@ def recall_strategy(running_example):
 
 class TestStrategySource:
     def test_every_strategy_class_gets_the_right_monitor(
-        self, running_example, paper_memoryless_strategy, paper_natural_strategy, recall_strategy
+        self, running_example, example_memoryless_strategy, example_natural_strategy, recall_strategy
     ):
         cases = [
-            (paper_memoryless_strategy, False, KBoundedMonitor),
-            (paper_memoryless_strategy, True, AdherenceMonitor),
-            (paper_natural_strategy, False, NaturalMemorylessMonitor),
-            (paper_natural_strategy, True, NaturalMemorylessAdherenceMonitor),
+            (example_memoryless_strategy, False, KBoundedMonitor),
+            (example_memoryless_strategy, True, AdherenceMonitor),
+            (example_natural_strategy, False, NaturalMemorylessMonitor),
+            (example_natural_strategy, True, NaturalMemorylessAdherenceMonitor),
             (recall_strategy, False, NaturalRecallMonitor),
         ]
         for strategy, adherence, expected in cases:
@@ -69,7 +69,7 @@ class TestStrategySource:
             assert type(monitor) is expected, (type(strategy).__name__, adherence)
 
     def test_adherence_is_refused_for_recall(self, running_example, recall_strategy):
-        """Section 6.1 leaves the recall case for future work."""
+        """The adherence monitor leaves the recall case for future work."""
         with pytest.raises(StrategyError, match="recall is left for future work"):
             build_strategy_monitor(running_example, recall_strategy, adherence=True)
 
@@ -145,7 +145,7 @@ class TestGoalComponent:
         assert "refined" in refined.describe()
         assert "plain LTL" in plain.describe()
 
-    def test_the_two_disagree_exactly_as_the_paper_says(self, running_example):
+    def test_the_two_disagree_as_expected(self, running_example):
         trace = replay(running_example, [("in", "in", "out"), ("in", "in", "in")])
         refined = MonitorSuite.build(running_example, goal=GOAL, use_model=True)
         plain = MonitorSuite.build(running_example, goal=GOAL, use_model=False)
@@ -164,8 +164,8 @@ class TestGoalComponent:
 
 
 class TestMixAndMatch:
-    def test_strategy_only(self, running_example, paper_natural_strategy):
-        suite = MonitorSuite.build(running_example, strategy=paper_natural_strategy)
+    def test_strategy_only(self, running_example, example_natural_strategy):
+        suite = MonitorSuite.build(running_example, strategy=example_natural_strategy)
         assert suite.goal_monitor is None
         assert set(suite.component_verdicts) == {"strategy"}
         assert suite.observe("s0", ("out", "in", "in")) is Verdict.BOT
@@ -179,8 +179,8 @@ class TestMixAndMatch:
         suite.observe("s0", ("out", "out", "out"))
         assert suite.verdict is Verdict.UNKNOWN
 
-    def test_both(self, running_example, paper_natural_strategy):
-        suite = MonitorSuite.build(running_example, strategy=paper_natural_strategy, goal=GOAL)
+    def test_both(self, running_example, example_natural_strategy):
+        suite = MonitorSuite.build(running_example, strategy=example_natural_strategy, goal=GOAL)
         assert set(suite.component_verdicts) == {"strategy", "goal"}
 
     def test_neither_is_refused(self, running_example):
@@ -188,9 +188,9 @@ class TestMixAndMatch:
             MonitorSuite.build(running_example)
 
     def test_a_component_verdict_is_not_lost_in_the_combination(
-        self, running_example, paper_natural_strategy
+        self, running_example, example_natural_strategy
     ):
-        suite = MonitorSuite.build(running_example, strategy=paper_natural_strategy, goal=GOAL)
+        suite = MonitorSuite.build(running_example, strategy=example_natural_strategy, goal=GOAL)
         trace = replay(running_example, [("in", "in", "out"), ("out", "in", "in")])
         suite.run(trace)
         assert suite.component_verdicts["strategy"] is Verdict.BOT
@@ -202,8 +202,8 @@ class TestMixAndMatch:
         assert set(PRECEDENCE) == {v for v in Verdict if v is not Verdict.UNKNOWN}
         assert PRECEDENCE[0] is Verdict.BOT_M
 
-    def test_unknown_when_no_component_concludes(self, running_example, paper_natural_strategy):
-        suite = MonitorSuite.build(running_example, strategy=paper_natural_strategy, goal=GOAL)
+    def test_unknown_when_no_component_concludes(self, running_example, example_natural_strategy):
+        suite = MonitorSuite.build(running_example, strategy=example_natural_strategy, goal=GOAL)
         assert suite.verdict is Verdict.UNKNOWN
 
 
@@ -214,7 +214,7 @@ class TestMixAndMatch:
 
 class TestRepairFollowsTheComponents:
     def test_goal_only_pipeline_repairs_the_model_without_synthesis(self, running_example):
-        """No strategy means no coalition branch, but Section 7.2 still applies."""
+        """No strategy means no coalition branch, but model repair still applies."""
         pipeline = RepairPipeline(cgs=running_example, goal=GOAL)
         assert pipeline.monitor is None
         assert pipeline.goal_monitor is not None
@@ -226,30 +226,30 @@ class TestRepairFollowsTheComponents:
         assert pipeline.strategy is None
 
     def test_strategy_only_pipeline_has_no_goal_component(
-        self, running_example, paper_natural_strategy
+        self, running_example, example_natural_strategy
     ):
         pipeline = RepairPipeline(
             cgs=running_example,
-            strategy=paper_natural_strategy,
+            strategy=example_natural_strategy,
             synthesiser=fixed_synthesiser(None),
         )
         assert pipeline.goal_monitor is None
         assert set(pipeline.component_verdicts) == {"strategy"}
 
     def test_coalition_defaults_to_the_strategy_coalition(
-        self, running_example, paper_natural_strategy
+        self, running_example, example_natural_strategy
     ):
-        pipeline = RepairPipeline(cgs=running_example, strategy=paper_natural_strategy)
-        assert pipeline.coalition == paper_natural_strategy.coalition
+        pipeline = RepairPipeline(cgs=running_example, strategy=example_natural_strategy)
+        assert pipeline.coalition == example_natural_strategy.coalition
 
     def test_a_k_bounded_strategy_can_drive_the_pipeline(
-        self, running_example, paper_memoryless_strategy
+        self, running_example, example_memoryless_strategy
     ):
         """The pipeline is no longer tied to natural memoryless strategies."""
         replacement = KBoundedStrategy.memoryless(["b"], {s: {"b": "idle"} for s in running_example.states})
         pipeline = RepairPipeline(
             cgs=running_example,
-            strategy=paper_memoryless_strategy,
+            strategy=example_memoryless_strategy,
             synthesiser=fixed_synthesiser(replacement),
         )
         assert isinstance(pipeline.monitor, KBoundedMonitor)
@@ -295,9 +295,9 @@ class TestRepairFollowsTheComponents:
             RepairPipeline(cgs=running_example)
 
     def test_no_synthesiser_means_a_violation_stops_monitoring(
-        self, running_example, paper_natural_strategy
+        self, running_example, example_natural_strategy
     ):
-        pipeline = RepairPipeline(cgs=running_example, strategy=paper_natural_strategy)
+        pipeline = RepairPipeline(cgs=running_example, strategy=example_natural_strategy)
         assert pipeline.observe("s0", ("out", "in", "in")) is RepairOutcome.FAILED
         assert pipeline.stopped
 

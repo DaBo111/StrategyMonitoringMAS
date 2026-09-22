@@ -2,7 +2,7 @@
 
 ``strategy_monitor.verify.enforces`` restricts the model to the strategy and
 model-checks the goal on the result.  It needs no VITAMIN and takes the full LTL
-grammar, so it can check the paper's own goal directly.
+grammar, so it can check the own goal directly.
 """
 
 import builtins
@@ -157,7 +157,7 @@ class TestEnforces:
         # the witness must really violate the goal
         assert any("p" not in running_example.label(state) for state in run)
 
-    def test_the_full_ltl_goal_of_the_paper(self, running_example):
+    def test_the_full_ltl_goal(self, running_example):
         """Nested X, which VITAMIN's ATL parser cannot even accept."""
         assert enforces(running_example, constant("in", "in"), GOAL).holds
         # out/out goes s0 -> s2 -> s3, and q & Xp holds at s2

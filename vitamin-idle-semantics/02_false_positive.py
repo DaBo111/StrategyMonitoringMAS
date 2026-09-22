@@ -51,4 +51,4 @@ print("  verify=True  -> satisfiable:", guarded.satisfiable, " verified:", guard
 print("  note:", guarded.note[:150])
 print()
 print("  Both causes involve a candidate that is not a TOTAL strategy, and")
-print("  Section 5.3 defines a strategy as a function.  Rejecting them is correct.")
+print("  A strategy is defined as a function.  Rejecting them is correct.")

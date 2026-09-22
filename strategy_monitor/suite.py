@@ -1,18 +1,18 @@
-"""Composing a runtime monitor from the paper's components.
+"""Composing a runtime monitor from the components.
 
-The paper's monitors are independent pieces, and a deployment may want any
+The monitors are independent pieces, and a deployment may want any
 subset of them:
 
 * a **strategy monitor** over a ``k``-bounded, natural memoryless, or natural
-  recall strategy (Sections 5.2, 5.4, 5.5), optionally with the
-  strategy-adherence verdict ``top^S_G`` of Section 6.1;
-* a **goal monitor** for an LTL goal (Section 6.2), either the plain monitor of
+  recall strategy, optionally with the
+  strategy-adherence verdict ``top^S_G``;
+* a **goal monitor** for an LTL goal, either the plain monitor of
   Bauer et al. or the one refined by intersecting with the CGS.
 
 :class:`MonitorSuite` runs whichever components it is given and reports one
 verdict.  Both are optional, so the suite covers strategy-only monitoring,
 goal-only monitoring (which still detects model violations when refined), and
-any combination.  The repair pipeline of Section 7 is built on top of it, which
+any combination.  The repair pipeline is built on top of it, which
 is what lets repair run with only one of the two branches active.
 """
 
@@ -52,7 +52,7 @@ PRECEDENCE = (
 Model violation first: if the observation is not a run of the CGS at all, the
 strategy monitor's memory bookkeeping and the goal automata are both reasoning
 about something the system is no longer doing.  Then the strategy violation,
-which Section 7.1 can act on, then the goal violation.  Among the positive
+which coalition repair can act on, then the goal violation.  Among the positive
 verdicts the goal guarantee is reported ahead of strategy adherence.  Use
 :attr:`MonitorSuite.component_verdicts` when the full picture is wanted.
 """
@@ -68,8 +68,8 @@ def build_strategy_monitor(
 ) -> StrategyMonitor:
     """Pick the monitor construction that fits the strategy class.
 
-    ``adherence`` selects the ``top^S_G`` variant of Section 6.1, which is
-    defined for ``k``-bounded and natural memoryless strategies; the paper
+    ``adherence`` selects the ``top^S_G`` variant, which is
+    defined for ``k``-bounded and natural memoryless strategies; the construction
     leaves the recall case for future work, so asking for it raises.
 
     ``determinize`` only reaches the recall monitor, where it chooses between
@@ -80,7 +80,7 @@ def build_strategy_monitor(
         if adherence:
             raise StrategyError(
                 "the strategy-adherence verdict is defined for k-bounded and natural "
-                "memoryless strategies only (Section 6.1); recall is left for future work"
+                "memoryless strategies only; recall is left for future work"
             )
         return NaturalRecallMonitor(cgs, strategy, determinize=determinize)
     if isinstance(strategy, NaturalMemorylessStrategy):
@@ -95,7 +95,7 @@ def build_strategy_monitor(
 
 
 class MonitorSuite:
-    """A runtime monitor assembled from any subset of the paper's components."""
+    """A runtime monitor assembled from any subset of the components."""
 
     def __init__(
         self,
@@ -132,7 +132,7 @@ class MonitorSuite:
         :func:`~strategy_monitor.vitamin.natatl_synthesize` returns an ordinary
         :class:`~strategy_monitor.strategies.NaturalMemorylessStrategy`.
         ``goal`` is an LTL formula; ``use_model`` chooses between the refined
-        monitor of Section 6.2 and the plain LTL monitor.  ``determinize``
+        monitor and the plain LTL monitor.  ``determinize``
         chooses the recall engine.  Passing ``None`` for either component leaves
         it out.
         """

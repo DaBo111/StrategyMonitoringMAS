@@ -1,8 +1,8 @@
 """Monitor verdicts.
 
-Section 4.4 starts from the three-valued domain ``B_3 = {top, bot, ?}`` of
-Bauer et al.  Section 6 refines the positive verdict into two, and the goal
-monitor of Section 6.2 additionally reports model violations, giving the
+The verdict domain starts from the three-valued domain ``B_3 = {top, bot, ?}`` of
+Bauer et al.  This package refines the positive verdict into two, and the goal
+monitor additionally reports model violations, giving the
 four-valued domain ``{top^G_G, bot^G, bot^M, ?}``.  All of them live in the single
 enumeration below so that a composite monitor can report one value.
 """
@@ -17,22 +17,22 @@ from typing import Optional, Tuple
 
 
 class Verdict(Enum):
-    """Every verdict the monitors of the paper can emit."""
+    """Every verdict the monitors can emit."""
 
     UNKNOWN = "?"
     """No conclusion can yet be drawn."""
 
     BOT = "bot"
-    """A coalition strategy violation: some agent deviated (Section 5.2)."""
+    """A coalition strategy violation: some agent deviated."""
 
     TOP_S = "top^S_G"
     """Strategy-adherence truth, relativised to the model: every window still
-    observable from the current state has been validated (Section 6.1)."""
+    observable from the current state has been validated."""
 
     TOP_G = "top^G_G"
     """Goal-oriented truth, relativised to the model: the goal holds on every
     continuation that respects the CGS, and is superseded by ``BOT_M`` should
-    the system leave it (Section 6.2)."""
+    the system leave it."""
 
     BOT_G = "bot^G"
     """Goal violation: the goal fails however the system continues."""
@@ -50,7 +50,7 @@ class Verdict(Enum):
 
     @property
     def symbol(self) -> str:
-        """The mathematical glyph used in the paper."""
+        """The mathematical glyph for this verdict."""
         return _SYMBOLS[self]
 
     def __str__(self) -> str:
@@ -84,7 +84,7 @@ _UNICODE_OUTPUT = _terminal_supports_unicode()
 class Violation:
     """A strategy deviation, attributed to one agent.
 
-    Attribution is what Section 7.1 needs to know which agent to exclude from
+    Attribution is what coalition repair needs to know which agent to exclude from
     the coalition; it holds by construction for the ``k``-bounded and natural
     memoryless monitors, which check compliance per agent.
     """
@@ -113,7 +113,7 @@ class Violation:
 
 @dataclass(frozen=True)
 class ModelDeviation:
-    """An observed transition the CGS does not contain -- input to Section 7.2."""
+    """An observed transition the CGS does not contain -- input to model repair."""
 
     step: int
     state: str

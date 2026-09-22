@@ -1,18 +1,18 @@
-"""Proposition 4: the natural memoryless monitor.
+"""The natural memoryless monitor.
 
-    construction O(|A| x |S| x k^2),  k = max_a compl(gamma_a^Natr)
+    construction O(|A| x |S| x k),  k = max_a compl(gamma_a^Natr)
     runtime      O(|A| x |omega|) time, O(|S| x |A|) space
 
 with ``compl(gamma_a) = sum over (gate, act) of |gate|``, the *total* number of
-variable occurrences across the agent's gates.
+symbols across the agent's gates.
 
-That definition is what makes the k^2 term worth probing.  Building the table
+That definition is what makes the k term worth probing.  Building the table
 evaluates every gate at every state, costing the sum of the gate sizes -- which
-is k itself, not k^2.  The proof reaches k^2 by bounding the number of gates by
-k and the cost of each by k separately, but under this definition the two cannot
-both be extremal: g gates of size s give k = g*s and work g*s = k.  So the bound
-should hold and be loose by a factor of k.  Sweeps A and B grow k the two
-opposite ways to check that neither shape reaches k^2.
+is k itself.  It is tempting to claim k^2, bounding the number of gates by k
+and the cost of each by k separately, but under this definition the two cannot
+both be extremal: g gates of size s give k = g*s and work g*s = k.  Sweeps A and
+B grow k the two opposite ways, and E grows both at once, to check that no shape
+of k exceeds linear.
 """
 
 import bench
@@ -48,6 +48,30 @@ def strategy_one_big_gate(cgs, coalition, width):
     )
 
 
+def strategy_square(cgs, coalition, side):
+    """k grown in BOTH directions at once: ``side`` gates of ``side`` terms.
+
+    Sweeps A and B sit at the two extremes of the shape space (many gates of
+    size one, one gate of many terms).  This is the middle: the gate count and
+    the gate size grow together, which is the configuration where "at most k
+    gates, each costing at most k" would read as k^2 work.  Since
+    ``compl`` sums the gate sizes, ``k`` here grows as side^2 rather than as
+    side -- so if the cost really were quadratic in k it would show up as an
+    exponent near 2 against k, and linear work as an exponent near 1.
+    """
+    ap = cgs.ap
+    # Never satisfied, so every gate in the list is evaluated before the
+    # fallback -- the worst case for the scan.
+    gate = " & ".join(
+        "({0} & !{0})".format(ap[i % len(ap)]) for i in range(side)
+    )
+    rules = {}
+    for agent in coalition:
+        pairs = [(gate, cgs.actions[agent][0]) for _ in range(side)]
+        rules[agent] = pairs + [("true", cgs.actions[agent][0])]
+    return NaturalMemorylessStrategy.build(coalition, rules)
+
+
 def sweep(build, values, label):
     cgs = bench.random_cgs(STATES, n_ap=4)
     rows, times, ks = [], [], []
@@ -64,15 +88,15 @@ def sweep(build, values, label):
     return ks, times
 
 
-bench.rule("A.  construction against k, grown by GATE COUNT   (claim: O(k^2))")
+bench.rule("A.  construction against k, grown by GATE COUNT   (claim: O(k))")
 ks, times = sweep(strategy_many_small_gates, [16, 64, 256, 1024, 4096], "gates")
 slope_a, r2_a = bench.fit_power(ks, times)
 print()
-print("  fitted exponent {0:.2f}   claimed <= 2.00   R^2 {1:.3f}".format(slope_a, r2_a))
-ok_a = slope_a <= 2.0 + 0.25
+print("  fitted exponent {0:.2f}   claimed <= 1.00   R^2 {1:.3f}".format(slope_a, r2_a))
+ok_a = slope_a <= 1.0 + 0.25
 
 
-bench.rule("B.  construction against k, grown by GATE SIZE   (claim: O(k^2))")
+bench.rule("B.  construction against k, grown by GATE SIZE   (claim: O(k))")
 # Capped at 800 conjuncts, for the same reason the k sweep stops below 2^22
 # table entries: past that depth Gate.evaluate hands the subtree to an explicit
 # stack, which is a different algorithm with different constants, so a sweep
@@ -83,8 +107,8 @@ bench.rule("B.  construction against k, grown by GATE SIZE   (claim: O(k^2))")
 ks_b, times_b = sweep(strategy_one_big_gate, [16, 64, 200, 400, 800], "width")
 slope_b, r2_b = bench.fit_power(ks_b, times_b)
 print()
-print("  fitted exponent {0:.2f}   claimed <= 2.00   R^2 {1:.3f}".format(slope_b, r2_b))
-ok_b = slope_b <= 2.0 + 0.25
+print("  fitted exponent {0:.2f}   claimed <= 1.00   R^2 {1:.3f}".format(slope_b, r2_b))
+ok_b = slope_b <= 1.0 + 0.25
 
 
 bench.rule("C.  construction against |S|, k fixed   (claim: linear in |S|)")
@@ -119,14 +143,27 @@ bench.table(["|A|", "seconds"], rows)
 ok_d = bench.verdict_affine(COALITIONS, times_d, what="agent (microseconds)")
 
 
+bench.rule("E.  construction against k, grown in BOTH directions   (claim: O(k))")
+# side gates of side terms each: the shape where "k gates each costing k" would
+# predict k^2. Capped at 400 terms per gate for the depth reason noted in B.
+ks_e, times_e = sweep(strategy_square, [4, 8, 16, 32, 64, 128, 256, 400], "side")
+slope_e, r2_e = bench.fit_power(ks_e, times_e)
+print()
+print("  fitted exponent {0:.2f}   claimed <= 1.00   R^2 {1:.3f}".format(slope_e, r2_e))
+print("  (a quadratic scan would fit near 2.00 here)")
+ok_e = slope_e <= 1.0 + 0.25
+
+
 bench.rule("Summary")
-print("  A  k by gate count : exponent {0:.2f}  (bound 2.00) -> {1}".format(
+print("  A  k by gate count : exponent {0:.2f}  (bound 1.00) -> {1}".format(
     slope_a, "within the bound" if ok_a else "EXCEEDS the bound"))
-print("  B  k by gate size  : exponent {0:.2f}  (bound 2.00) -> {1}".format(
+print("  B  k by gate size  : exponent {0:.2f}  (bound 1.00) -> {1}".format(
     slope_b, "within the bound" if ok_b else "EXCEEDS the bound"))
 print("  C  |S|             : {0}".format("ok" if ok_c else "OFF"))
 print("  D  |A|             : {0}".format("ok" if ok_d else "OFF"))
+print("  E  k both ways     : exponent {0:.2f}  (bound 1.00) -> {1}".format(
+    slope_e, "within the bound" if ok_e else "EXCEEDS the bound"))
 print()
-if ok_a and ok_b and max(slope_a, slope_b) < 1.5:
-    print("  Both shapes of k come out near-linear, so O(|A| x |S| x k^2) holds")
-    print("  but is loose: the measured cost is O(|A| x |S| x k).")
+if ok_a and ok_b and ok_e and max(slope_a, slope_b, slope_e) < 1.5:
+    print("  All three shapes of k come out near-linear -- gate count, gate size,")
+    print("  and both at once -- so O(|A| x |S| x k) holds however k is made up.")

@@ -8,7 +8,7 @@ The transition function is stored fully expanded (one entry per
 ``(state, joint action profile)`` pair), because the definition requires delta
 to be a total deterministic function.  Model files may nonetheless be written
 compactly with wildcard rules -- see :meth:`CGS.from_dict` -- which is how the
-figures of the paper label their edges.
+the figures label their edges.
 """
 
 from __future__ import annotations
@@ -114,7 +114,7 @@ class CGS:
     # -- basic accessors -------------------------------------------------
 
     def index(self, state: str) -> int:
-        """``id(s)`` of the paper: the direct-address index of a state."""
+        """``id(s)``: the direct-address index of a state."""
         try:
             return self._state_index[state]
         except KeyError:
@@ -166,17 +166,17 @@ class CGS:
         return tuple(profile[self.agent_index(a)] for a in coalition)
 
     def alphabet(self) -> Tuple[FrozenSet[str], ...]:
-        """``2^Ap`` -- the input alphabet of the automata of Section 6.2."""
+        """``2^Ap`` -- the input alphabet of the automata"""
         letters = []
         for size in range(len(self.ap) + 1):
             for combo in itertools.combinations(self.ap, size):
                 letters.append(frozenset(combo))
         return tuple(letters)
 
-    # -- model repair (Section 7.2) --------------------------------------
+    # -- model repair --------------------------------------
 
     def with_transition(self, state: str, profile: JointAction, target: str) -> "CGS":
-        """``delta'`` of Section 7.2: redirect one state/profile pair.
+        """``delta'``: redirect one state/profile pair.
 
         Returns a new CGS; the receiver is untouched.  ``target`` and any action
         of ``profile`` the protocol did not allow are added to the model, so an

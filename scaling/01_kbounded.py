@@ -1,4 +1,4 @@
-"""Propositions 1 and 2: the k-bounded (and memoryless) monitor.
+"""The k-bounded (and memoryless) monitor.
 
     Prop 1  memoryless:  construction O(|S| x |A|) time and space,
                          runtime O(|A| x |omega|), lookup worst-case O(1)
@@ -30,7 +30,7 @@ def construction(sizes, k, coalition_size=1):
 
 # -- A: construction against |S|, k = 1 ----------------------------------
 
-bench.rule("A.  Prop 1 -- construction against |S|, k = 1, |A| = 1   (claim: linear)")
+bench.rule("A.  construction against |S|, k = 1, |A| = 1   (claim: linear)")
 SIZES_A = [1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000, 256000]
 rows, times = construction(SIZES_A, k=1)
 bench.table(["|S|", "windows", "capacity", "seconds"], rows)
@@ -40,7 +40,7 @@ ok_a = bench.verdict(slope_a, 1.0, r2_a)
 
 # -- B: construction against |S|, k = 2 ----------------------------------
 
-bench.rule("B.  Prop 2 -- construction against |S|, k = 2, |A| = 1   (claim: |S|^2)")
+bench.rule("B.  construction against |S|, k = 2, |A| = 1   (claim: |S|^2)")
 SIZES_B = [64, 96, 144, 216, 324, 486, 729, 1024]
 rows, times = construction(SIZES_B, k=2)
 bench.table(["|S|", "windows", "capacity", "seconds"], rows)
@@ -50,7 +50,7 @@ ok_b = bench.verdict(slope_b, 2.0, r2_b)
 
 # -- C: construction against k, |S| fixed --------------------------------
 
-bench.rule("C.  Prop 2 -- construction against k, |S| = 5   (claim: |S|^k, so ln|S| per step)")
+bench.rule("C.  construction against k, |S| = 5   (claim: |S|^k, so ln|S| per step)")
 import math
 
 # |S| = 5 rather than 8: it buys three more points on the k axis before the
@@ -72,7 +72,7 @@ ok_c = bench.verdict(rate_c, math.log(5), r2_c, tolerance=0.25, what="ln-rate")
 
 # -- D: per-step runtime against |S| -------------------------------------
 
-bench.rule("D.  Prop 1 -- per-step runtime against |S|   (claim: O(1) lookup, so flat)")
+bench.rule("D.  per-step runtime against |S|   (claim: O(1) lookup, so flat)")
 SIZES_D = [1000, 4000, 16000, 64000, 256000, 1024000]
 STEPS = 20000
 rows, times = [], []
@@ -100,7 +100,7 @@ print("   longer fits in cache. The claim is about operation count.)")
 
 # -- E: per-step runtime against |A| -------------------------------------
 
-bench.rule("E.  Props 1-2 -- per-step runtime against |A|   (claim: linear in |A|)")
+bench.rule("E.  per-step runtime against |A|   (claim: linear in |A|)")
 AGENTS = 12
 COALITIONS = list(range(1, AGENTS + 1))
 # |S| kept small: delta holds n_actions^|Ag| entries per state, so widening

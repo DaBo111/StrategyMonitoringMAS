@@ -1,4 +1,4 @@
-"""The monitors of Sections 5.2, 5.4, 5.5, 6.1 and 6.2."""
+"""The monitors"""
 
 import itertools
 import random
@@ -29,12 +29,12 @@ from strategy_monitor.verdict import Verdict
 
 
 # ======================================================================
-# Section 5.2 -- k-bounded monitors
+# k-bounded monitors
 # ======================================================================
 
 
 class TestWindowIndex:
-    """Proposition 2: the sliding index must agree with direct addressing."""
+    """The sliding index must agree with direct addressing."""
 
     @pytest.mark.parametrize("k", [1, 2, 3])
     def test_sliding_matches_direct_address(self, running_example, k):
@@ -51,7 +51,7 @@ class TestWindowIndex:
         size = len(running_example.states)
         assert index.capacity == sum(size ** m for m in range(k + 1))
 
-    def test_offsets_follow_the_paper(self, running_example):
+    def test_offsets_follow_the_definition(self, running_example):
         index = WindowIndex(running_example, 2)
         # o_m = sum_{m' < m} |S|^{m'} with |S| = 4
         assert index.offsets[0] == 0
@@ -72,12 +72,12 @@ class TestWindowIndex:
 
 
 class TestKBoundedMonitor:
-    def test_paper_example_table(self, running_example, paper_memoryless_strategy):
-        paper_memoryless_strategy.validate(running_example)
-        assert paper_memoryless_strategy.prescribe(("s0",)) == {"a": "in", "b": "in"}
-        assert paper_memoryless_strategy.prescribe(("s3",)) == {"a": "out", "b": "out"}
+    def test_example_table(self, running_example, example_memoryless_strategy):
+        example_memoryless_strategy.validate(running_example)
+        assert example_memoryless_strategy.prescribe(("s0",)) == {"a": "in", "b": "in"}
+        assert example_memoryless_strategy.prescribe(("s3",)) == {"a": "out", "b": "out"}
 
-    def test_compliant_traces_stay_inconclusive(self, running_example, paper_memoryless_strategy):
+    def test_compliant_traces_stay_inconclusive(self, running_example, example_memoryless_strategy):
         # prefixes of {(s0 (in,in,any))^+ (s1 (out,out,any))^*}
         for actions in [
             [("in", "in", "in")],
@@ -85,13 +85,13 @@ class TestKBoundedMonitor:
             [("in", "in", "out"), ("out", "out", "in")],
             [("in", "in", "in"), ("in", "in", "out"), ("out", "out", "out"), ("out", "out", "in")],
         ]:
-            monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+            monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
             trace = replay(running_example, actions)
             assert monitor.run(trace) is Verdict.UNKNOWN, trace
             assert monitor.violations == []
 
-    def test_deviation_is_detected_and_attributed(self, running_example, paper_memoryless_strategy):
-        monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+    def test_deviation_is_detected_and_attributed(self, running_example, example_memoryless_strategy):
+        monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
         trace = replay(running_example, [("out", "in", "out")])
         assert monitor.run(trace) is Verdict.BOT
         assert len(monitor.violations) == 1
@@ -101,23 +101,23 @@ class TestKBoundedMonitor:
         assert violation.prescribed == "in"
         assert violation.state == "s0"
 
-    def test_both_agents_are_reported(self, running_example, paper_memoryless_strategy):
-        monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+    def test_both_agents_are_reported(self, running_example, example_memoryless_strategy):
+        monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
         monitor.run(replay(running_example, [("out", "out", "out")]))
         assert {v.agent for v in monitor.violations} == {"a", "b"}
 
     def test_agents_outside_the_coalition_are_ignored(
-        self, running_example, paper_memoryless_strategy
+        self, running_example, example_memoryless_strategy
     ):
-        monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+        monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
         # c plays whatever it likes
         for c_action in ["in", "out"]:
-            monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+            monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
             trace = replay(running_example, [("in", "in", c_action)])
             assert monitor.run(trace) is Verdict.UNKNOWN
 
-    def test_verdict_is_sticky(self, running_example, paper_memoryless_strategy):
-        monitor = KBoundedMonitor(running_example, paper_memoryless_strategy)
+    def test_verdict_is_sticky(self, running_example, example_memoryless_strategy):
+        monitor = KBoundedMonitor(running_example, example_memoryless_strategy)
         monitor.observe("s0", ("out", "out", "out"))
         assert monitor.verdict is Verdict.BOT
         monitor.observe("s2", ("out", "out", "in"))
@@ -157,13 +157,13 @@ class TestKBoundedMonitor:
 
 
 # ======================================================================
-# Sections 5.3-5.4 -- natural memoryless
+# natural memoryless
 # ======================================================================
 
 
 class TestNaturalMemoryless:
-    def test_algorithm_1_reproduces_the_paper_table(self, running_example, paper_natural_strategy):
-        table = paper_natural_strategy.to_kbounded(running_example)
+    def test_reduction_reproduces_the_table(self, running_example, example_natural_strategy):
+        table = example_natural_strategy.to_kbounded(running_example)
         assert {w[0]: (a["a"], a["b"]) for w, a in table.table.items()} == {
             "s0": ("in", "in"),
             "s1": ("in", "in"),
@@ -171,23 +171,24 @@ class TestNaturalMemoryless:
             "s3": ("in", "in"),
         }
 
-    def test_gate_priority(self, paper_natural_strategy):
+    def test_gate_priority(self, example_natural_strategy):
         # s0 satisfies both p and q, but (p, in) comes first
-        assert paper_natural_strategy.action_for("a", frozenset({"p", "q"})) == "in"
-        assert paper_natural_strategy.action_for("a", frozenset({"q"})) == "out"
-        assert paper_natural_strategy.action_for("a", frozenset()) == "idle"
+        assert example_natural_strategy.action_for("a", frozenset({"p", "q"})) == "in"
+        assert example_natural_strategy.action_for("a", frozenset({"q"})) == "out"
+        assert example_natural_strategy.action_for("a", frozenset()) == "idle"
 
-    def test_complexity_is_the_sum_of_gate_sizes(self, paper_natural_strategy):
-        # |p| + |q| + |true| = 1 + 1 + 0
-        assert paper_natural_strategy.complexity("a") == 2
-        assert paper_natural_strategy.complexity() == 2
+    def test_complexity_is_the_sum_of_gate_sizes(self, example_natural_strategy):
+        # |p| + |q| + |true| = 1 + 1 + 1; three gates, complexity 3, so the
+        # gate count never exceeds the complexity.
+        assert example_natural_strategy.complexity("a") == 3
+        assert example_natural_strategy.complexity() == 3
 
-    def test_monitor_matches_the_reduced_table(self, running_example, paper_natural_strategy):
-        monitor = NaturalMemorylessMonitor(running_example, paper_natural_strategy)
+    def test_monitor_matches_the_reduced_table(self, running_example, example_natural_strategy):
+        monitor = NaturalMemorylessMonitor(running_example, example_natural_strategy)
         trace = replay(running_example, [("in", "in", "out"), ("in", "in", "in")])
         assert monitor.run(trace) is Verdict.UNKNOWN
 
-        monitor = NaturalMemorylessMonitor(running_example, paper_natural_strategy)
+        monitor = NaturalMemorylessMonitor(running_example, example_natural_strategy)
         trace = replay(running_example, [("in", "in", "out"), ("out", "in", "in")])
         assert monitor.run(trace) is Verdict.BOT
         assert monitor.violations[0].agent == "a"
@@ -208,7 +209,7 @@ class TestNaturalMemoryless:
 
 
 # ======================================================================
-# Section 5.5 -- natural strategies with recall
+# natural strategies with recall
 # ======================================================================
 
 
@@ -235,7 +236,7 @@ class TestNaturalRecall:
         letters = alphabet_of(running_example.ap)
         product = ever_seen_q.product(letters)
         m = ever_seen_q.complexity()
-        # Proposition 5: |S| = prod_a |S^a| <= m^{|A|}
+        # the product bound: |S| = prod_a |S^a| <= m^{|A|}
         assert len(product.states) <= m ** len(ever_seen_q.coalition)
 
     def test_history_changes_the_prescription(self, running_example, ever_seen_q):
@@ -273,14 +274,14 @@ class TestNaturalRecall:
 
 
 # ======================================================================
-# Section 6.1 -- strategy-adherence truth
+# strategy-adherence truth
 # ======================================================================
 
 
 class TestAdherenceMonitor:
-    """Section 6.1: ``top^S_G`` is relativised to what is still observable."""
+    """``top^S_G`` is relativised to what is still observable."""
 
-    def test_paper_example_reaches_top_s(self, revised_example, adherence_strategy):
+    def test_example_reaches_top_s(self, revised_example, adherence_strategy):
         monitor = AdherenceMonitor(revised_example, adherence_strategy)
         trace = replay(
             revised_example,
@@ -298,7 +299,7 @@ class TestAdherenceMonitor:
         assert monitor.current_state == "s2"
         assert monitor.pending_from() == [("s2",), ("s3",)]
 
-    def test_absorbing_state_validates_early(self, running_example, paper_memoryless_strategy):
+    def test_absorbing_state_validates_early(self, running_example, example_memoryless_strategy):
         """A run that enters an absorbing region need not visit the rest.
 
         In the running example s1 is absorbing, so once s0 and s1 have been
@@ -306,15 +307,15 @@ class TestAdherenceMonitor:
         though s2 and s3 were never seen.  Under an unrelativised reading this
         run could never conclude.
         """
-        monitor = AdherenceMonitor(running_example, paper_memoryless_strategy)
+        monitor = AdherenceMonitor(running_example, example_memoryless_strategy)
         trace = replay(running_example, [("in", "in", "out"), ("out", "out", "in")])
         assert trace.state_projection == ("s0", "s1", "s1")
         assert monitor.run(trace) is Verdict.TOP_S
         assert {w[0] for w in monitor.pending_configurations()} == {"s2", "s3"}
         assert monitor.pending_from("s1") == []
 
-    def test_staying_in_s0_stays_inconclusive(self, running_example, paper_memoryless_strategy):
-        monitor = AdherenceMonitor(running_example, paper_memoryless_strategy)
+    def test_staying_in_s0_stays_inconclusive(self, running_example, example_memoryless_strategy):
+        monitor = AdherenceMonitor(running_example, example_memoryless_strategy)
         trace = replay(running_example, [("in", "in", "in")] * 3)
         assert monitor.run(trace) is Verdict.UNKNOWN
         # every state is still reachable from s0
@@ -327,9 +328,9 @@ class TestAdherenceMonitor:
         # the offending window is not ticked off
         assert ("s0",) in monitor.pending_configurations()
 
-    def test_verdict_test_is_the_counter(self, running_example, paper_memoryless_strategy):
+    def test_verdict_test_is_the_counter(self, running_example, example_memoryless_strategy):
         """The O(1) test of the proof: n[s_cur] == 0."""
-        monitor = AdherenceMonitor(running_example, paper_memoryless_strategy)
+        monitor = AdherenceMonitor(running_example, example_memoryless_strategy)
         assert monitor.outstanding() == len(running_example.states)
         monitor.observe("s0", ("in", "in", "out"))
         assert monitor.outstanding() == 3  # s1, s2, s3 still reachable and unvalidated
@@ -382,7 +383,7 @@ class TestAdherenceMonitor:
 
 class TestModelWindows:
     def test_only_paths_of_the_model_count(self, running_example):
-        """The paper's remark: 7 of the 16 elements of S^2 are paths of G_E."""
+        """The remark: 7 of the 16 elements of S^2 are paths of G_E."""
         windows = model_windows(running_example, 2)
         assert len(windows) == 7
         assert len(running_example.states) ** 2 == 16
@@ -408,14 +409,14 @@ class TestModelWindows:
 
 
 # ======================================================================
-# Section 6.2 -- goal-oriented truth
+# goal-oriented truth
 # ======================================================================
 
 
 class TestGoalMonitor:
     GOAL = "G(p | (q & X p))"
 
-    def test_paper_example_refines_the_plain_monitor(self, running_example):
+    def test_example_refines_the_plain_monitor(self, running_example):
         refined = GoalMonitor(running_example, self.GOAL, use_model=True)
         plain = GoalMonitor(running_example, self.GOAL, use_model=False)
         trace = replay(running_example, [("in", "in", "out"), ("in", "in", "in")])
@@ -447,7 +448,7 @@ class TestGoalMonitor:
         assert monitor.evaluate([]) is Verdict.UNKNOWN
 
     def test_plain_monitor_never_reports_a_model_violation(self, running_example):
-        """Without the model product, bot^M is unreachable -- the paper's 'for free'."""
+        """Without the model product, bot^M is unreachable -- the 'for free'."""
         plain = GoalMonitor(running_example, self.GOAL, use_model=False)
         letters = plain.alphabet
         for length in range(1, 4):

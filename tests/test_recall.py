@@ -1,10 +1,10 @@
 """Natural strategies with recall: the regex form and the two monitor engines.
 
-Section 5.3 specifies a recall strategy as a priority-ordered sequence of
-``(regex, action)`` pairs; Section 5.5 monitors it after translating to DFSTs.
+A recall strategy is specifiedgy as a priority-ordered sequence of
+``(regex, action)`` pairs; the recall monitor consumes it after translating to DFSTs.
 Both representations are first class here, and the monitor may either
 
-* determinise at construction, giving the product DFST of Proposition 5 and an
+* determinise at construction, giving the product DFST and an
   ``O(|A|)`` step, at the cost of a table that can be exponential;
 * keep the Thompson NFAs and simulate them, paying per step instead; or
 * determinise lazily, materialising only the product states the run reaches.
@@ -199,7 +199,7 @@ class TestEngineEquivalence:
                     answers = [engine.step(letter) for engine in engines]
                     assert answers[0] == answers[1] == answers[2], (name, word)
                     prescribed = answers[0]
-                # ... and all match the reference semantics of Section 5.3
+                # ... and all match the reference semantics
                 assert prescribed["a"] == strategy.action_for("a", list(word)), (name, word)
 
     @pytest.mark.parametrize("name", sorted(SEQUENCES))

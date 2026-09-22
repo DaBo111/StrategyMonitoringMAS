@@ -7,13 +7,13 @@ Commands
 ``monitor``    run a monitor over a trace; the strategy component, the goal
                component, or both, with the strategy given or synthesised
 ``goal``       inspect the goal monitor ``M^G`` alone (sizes, optional trace)
-``repair``     run the repair pipeline of Section 7 over a trace
+``repair``     run the repair pipeline over a trace
 ``check``      ATL model checking through VITAMIN
 ``synthesize`` NatATL strategy synthesis through VITAMIN
 ``export``     write the model in VITAMIN's model-file syntax
 ``dot``        emit an automaton as Graphviz DOT
 ``backend``    report which LTL translation backend is in use
-``demo``       reproduce every worked example of the paper
+``demo``       reproduce every worked example
 """
 
 from __future__ import annotations
@@ -319,7 +319,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="with --synthesize: keep VITAMIN's idle semantics (see the README)",
     )
     monitor.add_argument(
-        "--adherence", action="store_true", help="use M^S, the relativised verdict of Section 6.1"
+        "--adherence", action="store_true", help="use M^S, the relativised verdict"
     )
     monitor.add_argument("--goal", help="LTL goal, adding the M^G component")
     monitor.add_argument(
@@ -341,7 +341,7 @@ def build_parser() -> argparse.ArgumentParser:
     goal.add_argument("--no-model", action="store_true", help="plain LTL monitor, no CGS product")
     goal.set_defaults(func=cmd_goal)
 
-    repair = subparsers.add_parser("repair", help="run the repair pipeline of Section 7")
+    repair = subparsers.add_parser("repair", help="run the repair pipeline")
     repair.add_argument("model", help="CGS JSON file")
     repair.add_argument("trace", help="trace JSON file")
     repair.add_argument("--strategy", help="strategy JSON file")
@@ -356,7 +356,7 @@ def build_parser() -> argparse.ArgumentParser:
     repair.add_argument(
         "--no-model", action="store_true", help="plain LTL goal monitor, no CGS intersection"
     )
-    repair.add_argument("--adherence", action="store_true", help="use M^S (Section 6.1)")
+    repair.add_argument("--adherence", action="store_true", help="use M^S")
     repair.add_argument(
         "--recall-engine",
         choices=["dfa", "nfa", "lazy"],
@@ -410,7 +410,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     backend.set_defaults(func=cmd_backend)
 
-    demo = subparsers.add_parser("demo", help="reproduce the worked examples of the paper")
+    demo = subparsers.add_parser("demo", help="reproduce the worked examples")
     demo.add_argument("--no-vitamin", action="store_true", help="skip the VITAMIN-backed sections")
     demo.set_defaults(func=cmd_demo)
 

@@ -1,16 +1,15 @@
-"""Boolean formulas over atomic propositions -- ``Bool(Ap)`` of Section 5.3.
+"""Boolean formulas over atomic propositions -- ``Bool(Ap)``
 
 These are the *gates* of a memoryless natural strategy.  The concrete syntax
-accepts the usual spellings so that gates can be copied straight out of the
-paper, out of a VITAMIN NatATL witness, or typed by hand::
+accepts the usual spellings so that gates can be copied straight out of a
+VITAMIN NatATL witness, or typed by hand::
 
     p            !p           p & q         p && q
     p | q        p or q       p -> q        true / True / top
     (p & !q) | r
 
-``complexity`` implements ``|phi|`` of Section 5.3 -- the number of variable
-occurrences in the formula -- which drives the complexity bounds of
-Proposition 4.
+``complexity`` implements ``|phi|`` -- the number of symbols in
+the formula, one per syntax-tree node -- which drives the complexity bounds
 """
 
 from __future__ import annotations
@@ -75,8 +74,28 @@ class Gate:
 
     @property
     def complexity(self) -> int:
-        """``|phi|``: the number of variables appearing in the formula."""
-        return len(self.variables())
+        """``|phi|``: the number of symbols in the formula.
+
+        One per node of the syntax tree, so operators are counted alongside
+        atomic propositions and ``|top| = 1``.  This is the measure the definition
+        states, following Jamroga et al.
+
+        Iterative for the same reason ``variables`` is: a wide conjunction is a
+        deep tree, and a recursive count overflows CPython's stack past roughly
+        800 terms.
+        """
+        total = 0
+        stack: List["Gate"] = [self]
+        while stack:
+            node = stack.pop()
+            total += 1
+            kind = node.__class__
+            if kind is Not:
+                stack.append(node.operand)
+            elif kind is And or kind is Or:
+                stack.append(node.right)
+                stack.append(node.left)
+        return total
 
     def __str__(self) -> str:
         try:

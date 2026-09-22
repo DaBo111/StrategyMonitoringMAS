@@ -1,7 +1,7 @@
 """Construction end to end, and the space half of the claims.
 
-Propositions 1, 2 and 5 each claim their construction bound for "time **and
-space**", and 4 claims O(|S| x |A|) space at runtime.  Scripts 01-04 measure
+Three of the construction bounds are claimed for "time **and space**", and the
+natural memoryless one also claims O(|S| x |A|) space at runtime.  Scripts 01-04 measure
 only time, and they time the monitor with its strategy already tabulated.  This
 script closes both gaps:
 

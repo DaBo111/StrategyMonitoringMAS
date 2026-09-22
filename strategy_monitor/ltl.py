@@ -1,6 +1,6 @@
 """Linear Temporal Logic and its translation to Buchi automata.
 
-Section 4.3 of the paper fixes the grammar
+The grammar is fixed as
 
     phi ::= top | p | !phi | phi & phi | X phi | phi U phi
 
@@ -10,7 +10,7 @@ over the explicit alphabet ``2^Ap`` with the classical on-the-fly tableau
 construction of Gerth, Peled, Vardi and Wolper.
 
 The translation is implemented here rather than delegated to Spot so that the
-goal-oriented monitor of Section 6.2 runs anywhere Python does; Spot has no
+goal-oriented monitor runs anywhere Python does; Spot has no
 Windows build, and VITAMIN's LTL support is CTL-backed and therefore cannot
 supply the automata this construction needs.
 """
@@ -357,7 +357,7 @@ def nnf(formula: LTL, negated: bool = False) -> LTL:
 
 
 def negate(formula: LTL) -> LTL:
-    """``!phi`` -- used to build the negative automaton of Section 6.2."""
+    """``!phi`` -- used to build the negative automaton"""
     return Neg(formula)
 
 

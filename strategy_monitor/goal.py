@@ -1,6 +1,6 @@
-"""The goal-oriented monitor ``M^G`` of Section 6.2.
+"""The goal-oriented monitor ``M^G``
 
-The construction follows the paper step by step:
+The construction proceeds step by step:
 
 1. translate the goal ``phi`` and its negation into Buchi automata
    ``A^phi`` and ``A^{!phi}``;
@@ -18,7 +18,7 @@ The construction follows the paper step by step:
 Because the automata are intersected with the model, a state pair in which
 *neither* component can be extended is reachable exactly when the observed word
 is not the labelling of any run of the CGS -- so model violation detection comes
-for free, as the paper notes.
+for free.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ from .verdict import Verdict
 
 
 def cgs_to_buchi(cgs: CGS) -> Buchi:
-    """``A_T`` of Section 6.2: the CGS read as a Buchi automaton.
+    """``A_T``: the CGS read as a Buchi automaton.
 
     One state per state of the CGS, every state accepting, and an edge
     ``s -> s'`` labelled ``pi(s)`` for every ``s'`` the model can reach from
@@ -77,7 +77,7 @@ class GoalMonitor:
 
     Set ``use_model=False`` to obtain the plain LTL monitor of Bauer et al.,
     built from ``A^phi`` and ``A^{!phi}`` alone.  Comparing the two is what the
-    example of Section 6.2 does: on the running example the unrefined monitor
+    example does: on the running example the unrefined monitor
     can never answer ``top``, while the refined one does.
     """
 
@@ -116,7 +116,7 @@ class GoalMonitor:
         return self._verdict
 
     def _label(self, positive, negative) -> Verdict:
-        """``lambda`` of Section 6.2."""
+        """``lambda``"""
         in_positive = positive in self.tables.positive.accepting
         in_negative = negative in self.tables.negative.accepting
         if in_positive and not in_negative:

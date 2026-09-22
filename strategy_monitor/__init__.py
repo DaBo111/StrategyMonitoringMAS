@@ -5,20 +5,20 @@ monitors that watch a multi-agent system modelled as a concurrent game structure
 and report, at runtime, whether the agents are following a prescribed coalition
 strategy.
 
-Section map
+Concept map
 -----------
 
 ===========================================  =====================================
-Paper                                        Module
+Concept                                      Module
 ===========================================  =====================================
-Definition 1, CGS                            :mod:`strategy_monitor.cgs`
-Section 5.2, trace semantics                 :mod:`strategy_monitor.trace`
-Section 5.2, k-bounded monitor               :class:`~strategy_monitor.monitors.KBoundedMonitor`
-Sections 5.3-5.4, natural memoryless         :class:`~strategy_monitor.monitors.NaturalMemorylessMonitor`
-Sections 5.3/5.5, natural with recall        :class:`~strategy_monitor.monitors.NaturalRecallMonitor`
-Section 6.1, strategy-adherence truth        :class:`~strategy_monitor.monitors.AdherenceMonitor`
-Section 6.2, goal-oriented truth             :class:`~strategy_monitor.goal.GoalMonitor`
-Section 7, strategy repair                   :class:`~strategy_monitor.repair.RepairPipeline`
+concurrent game structure                    :mod:`strategy_monitor.cgs`
+trace semantics                              :mod:`strategy_monitor.trace`
+k-bounded monitor                            :class:`~strategy_monitor.monitors.KBoundedMonitor`
+natural memoryless                           :class:`~strategy_monitor.monitors.NaturalMemorylessMonitor`
+natural with recall                          :class:`~strategy_monitor.monitors.NaturalRecallMonitor`
+strategy-adherence truth                     :class:`~strategy_monitor.monitors.AdherenceMonitor`
+goal-oriented truth                          :class:`~strategy_monitor.goal.GoalMonitor`
+strategy repair                              :class:`~strategy_monitor.repair.RepairPipeline`
 composing any subset of the above            :class:`~strategy_monitor.suite.MonitorSuite`
 checking a strategy really wins              :func:`~strategy_monitor.verify.enforces`
 ===========================================  =====================================

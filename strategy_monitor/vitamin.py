@@ -6,10 +6,10 @@ framework itself does not provide:
 
 * **ATL model checking**, used to ask whether a coalition can still enforce the
   goal from the current state -- the realisability question both branches of the
-  repair procedure of Section 7 have to answer;
+  repair procedure have to answer;
 * **NatATL strategy synthesis**, which returns an actual winning *natural
   memoryless* strategy as a list of guarded actions -- exactly the
-  ``((gate_i, act_i))`` shape of Section 5.3, so its output can be handed
+  ``((gate_i, act_i))`` shape, so its output can be handed
   straight to :class:`~strategy_monitor.monitors.NaturalMemorylessMonitor`.
 
 Two representation details have to be bridged:
@@ -365,14 +365,14 @@ def natatl_synthesize(
     ``objective`` is the path formula under the coalition modality, e.g.
     ``G(p || q)``.  Note that VITAMIN's ATL and NatATL parsers accept only a
     single temporal operator directly under the modality, so a goal such as the
-    paper's ``G(p | (q & X p))`` cannot be passed here; give the strongest
+    ``G(p | (q & X p))`` cannot be passed here; give the strongest
     ATL-expressible objective instead and keep the full LTL goal for the
     goal-oriented monitor.
 
     When ``add_idle_default`` is set, an idle catch-all is appended to each
     agent's gate list for the states no synthesised gate covers.  This mirrors
     VITAMIN's own pruning, which lets an agent idle wherever its strategy is
-    silent, and makes the returned strategy total -- as Section 5.3 requires.
+    silent, and makes the returned strategy total -- as the definition requires.
 
     ``rename_idle`` (on by default) exports the idle action under another name.
     An action's name is arbitrary, and VITAMIN gives ``I``/``IDLE`` a special
@@ -388,7 +388,7 @@ def natatl_synthesize(
     every universally quantified CTL formula vacuously.  Both cases involve a
     candidate that is not a total strategy, and ``verify`` rejects them.
     Together the two give a search that is sound, and complete over the *total*
-    natural memoryless strategies -- which are the only ones Section 5.3 admits.
+    natural memoryless strategies -- which are the only ones the definition admits.
 
     Pass ``rename_idle=False`` to reproduce VITAMIN's native behaviour.  For a
     model with no idle action the setting makes no difference: the export is
@@ -485,7 +485,7 @@ def _verify_strategy(cgs: CGS, strategy, objective: str):
     try:
         verdict = enforces(cgs, strategy, objective)
     except StrategyError as error:
-        # The witness is not a strategy in the sense of Section 5.3: it leaves a
+        # The witness is not a strategy in the sense: it leaves a
         # state unprescribed, or prescribes something the protocol forbids.
         # VITAMIN completes such a witness with idling, which is only available
         # when the model has an idle action -- and its own prune reads an
@@ -493,7 +493,7 @@ def _verify_strategy(cgs: CGS, strategy, objective: str):
         # Neither is a reason to accept it.
         return False, (
             "VITAMIN reported this strategy as winning, but it is not a total "
-            "strategy: {0}. Section 5.3 defines a strategy as a function, and "
+            "strategy: {0}. A strategy is defined as a function, and "
             "VITAMIN's prune treats the unprescribed states as dead ends, where the "
             "objective holds vacuously.".format(str(error).splitlines()[0].rstrip(":"))
         )

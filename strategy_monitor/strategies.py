@@ -1,15 +1,15 @@
-"""The three classes of coalition strategy the paper monitors.
+"""The three classes of coalition strategy this package monitors.
 
-* :class:`KBoundedStrategy` -- Section 5.2.  ``gamma_i(h) = gamma_i(h^{>=k})``:
+* :class:`KBoundedStrategy`.  ``gamma_i(h) = gamma_i(h^{>=k})``:
   the prescribed action depends only on the last ``k`` observed states.
   ``k = 1`` is the memoryless case.
-* :class:`NaturalMemorylessStrategy` -- Section 5.3, ``NatS`` without recall: a
+* :class:`NaturalMemorylessStrategy` -- ``NatS`` without recall: a
   priority-ordered list of ``(gate, action)`` pairs per agent, the agent playing
   the action of the first gate the current state satisfies.
-* ``NatS`` with recall comes in two representations, both of Section 5.3/5.5:
+* ``NatS`` with recall comes in two representations:
   :class:`NaturalRecallRegexStrategy` is the regular-expression-sequence form a
   strategy is *specified* in, and :class:`NaturalRecallStrategy` is the
-  deterministic finite-state transducer form Section 5.5 monitors.
+  deterministic finite-state transducer form the recall monitor consumes.
   :meth:`NaturalRecallRegexStrategy.to_dfst_strategy` translates between them,
   and the monitor may instead simulate the regexes' NFAs directly.
 """
@@ -36,7 +36,7 @@ class StrategyError(ValueError):
 
 
 # ======================================================================
-# k-bounded memory strategies (Section 5.2)
+# k-bounded memory strategies
 # ======================================================================
 
 
@@ -83,8 +83,8 @@ class KBoundedStrategy:
     ) -> "KBoundedStrategy":
         """Tabulate ``function(window, agent) -> action`` over every window of length <= k.
 
-        This materialises ``H_{Gamma_A}`` of Section 5.2, whose size is the
-        ``O(|S|^k)`` of Proposition 2.
+        This materialises ``H_{Gamma_A}``, whose size is the
+        ``O(|S|^k)``.
         """
         coalition = tuple(coalition)
         table: Dict[Window, Dict[str, str]] = {}
@@ -123,7 +123,7 @@ class KBoundedStrategy:
 
 
 # ======================================================================
-# natural memoryless strategies (Sections 5.3 and 5.4)
+# natural memoryless strategies
 # ======================================================================
 
 
@@ -139,7 +139,7 @@ class NaturalMemorylessStrategy:
         """``rules[agent]`` is an ordered sequence of ``(gate, action)`` pairs.
 
         The gate may be a :class:`~strategy_monitor.boolean.Gate` or its concrete
-        syntax, so a strategy can be written exactly as in the paper::
+        syntax, so a strategy can be written in its usual notation::
 
             NaturalMemorylessStrategy.build(
                 ["a", "b"],
@@ -162,8 +162,7 @@ class NaturalMemorylessStrategy:
     def complexity(self, agent: Optional[str] = None) -> int:
         """``compl(gamma_a^{Natr}) = sum |gate|`` over the agent's pairs.
 
-        Without an agent, the maximum over the coalition -- the ``k`` of
-        Proposition 4.
+        Without an agent, the maximum over the coalition -- the ``k``.
         """
         if agent is not None:
             return sum(gate.complexity for gate, _ in self.rules[agent])
@@ -173,11 +172,14 @@ class NaturalMemorylessStrategy:
         )
 
     def to_kbounded(self, cgs: CGS, strict: bool = True) -> KBoundedStrategy:
-        """Algorithm 1 of the paper: reduce to the 1-bounded table of Section 5.2.
+        """The reduction to the 1-bounded table
 
         Iterates over the states and, for each, over the coalition members,
         taking the action of the first gate the state satisfies -- the
-        ``O(|A| x |S| x k^2)`` construction of Proposition 4.
+        ``O(|A| x |S| x k)`` construction.  Linear in ``k``,
+        not quadratic: ``compl`` sums the gate sizes, so scanning the whole
+        list costs exactly ``k`` however it is split between gate count and
+        gate size.
         """
         table: Dict[Window, Dict[str, str]] = {}
         problems: List[str] = []
@@ -234,7 +236,7 @@ class NaturalMemorylessStrategy:
 
 
 # ======================================================================
-# natural strategies with recall (Section 5.5)
+# natural strategies with recall
 # ======================================================================
 
 
@@ -285,7 +287,7 @@ class DFST:
 
 
 def product_dfst(transducers: Sequence[DFST], alphabet: Sequence[Letter]) -> DFST:
-    """The product DFST of Proposition 5.
+    """The product DFST.
 
     ``S = prod_a S^a``, ``F_I`` and ``F_O`` applied componentwise, giving the
     ``O(m^{|A|} x 2^{Ap} x |A|)`` construction of the proposition.  Only the
@@ -350,11 +352,11 @@ class NaturalRecallStrategy:
         """Compile the regular-expression-sequence form into NatDFSTs.
 
         ``sequences[agent]`` is the priority-ordered list of ``(regex, action)``
-        pairs of Section 5.3; the agent plays the action of the first regex the
+        pairs; the agent plays the action of the first regex the
         observed history matches.  Each regex over ``Bool(Ap)`` is compiled to a
         DFA over ``2^Ap`` and the DFAs are producted, the output of a product
         state being the action of the least-index accepting component.  This is
-        the translation Section 5.5 refers to; the monitor itself is built from
+        the translation the recall monitor relies on; the monitor itself is built from
         the resulting transducers.
         """
         coalition = tuple(coalition)
@@ -371,11 +373,11 @@ class NaturalRecallStrategy:
         return cls(coalition=coalition, transducers=transducers)
 
     def product(self, alphabet: Sequence[Letter]) -> DFST:
-        """The product DFST driving the monitor of Proposition 5."""
+        """The product DFST driving the monitor."""
         return product_dfst([self.transducers[a] for a in self.coalition], alphabet)
 
     def complexity(self, agent: Optional[str] = None) -> int:
-        """Number of DFST states -- the ``m`` of Proposition 5 when maximised."""
+        """Number of DFST states -- the ``m`` when maximised."""
         if agent is not None:
             return len(self.transducers[agent].states)
         return max((len(t.states) for t in self.transducers.values()), default=0)
@@ -383,16 +385,16 @@ class NaturalRecallStrategy:
 
 @dataclass
 class NaturalRecallRegexStrategy:
-    """``Gamma_A^{NatR}`` in the regular-expression-sequence form of Section 5.3.
+    """``Gamma_A^{NatR}`` in the regular-expression-sequence form
 
     ``gamma_a^{NatR} = ((regex_1, act_1), ..., (regex_n, act_n))`` and, given a
     history ``h``, agent ``a`` plays ``act_i`` for the least ``i`` with
     ``h |= regex_i``.  This is the representation the strategies are *specified*
-    in; Section 5.5 builds its monitor from DFSTs instead, and proves the bounds
+    in; the recall monitor is built from DFSTs instead, and proves the bounds
     for that form.  Keeping the regexes as the strategy lets the monitor choose
     between the two:
 
-    * :meth:`to_dfst_strategy` performs the translation Section 5.5 refers to --
+    * :meth:`to_dfst_strategy` performs that translation --
       each regex becomes a DFA, and the prioritised DFAs are producted into one
       transducer.  Construction can be exponential in the regexes; a step is
       then a single table lookup.
@@ -418,7 +420,7 @@ class NaturalRecallRegexStrategy:
         """``sequences[agent]`` is the ordered list of ``(regex, action)`` pairs.
 
         A regex may be given as a :class:`~strategy_monitor.regex.Regex` or in
-        the concrete syntax, so a strategy reads as it is written in the paper::
+        the concrete syntax, so a strategy reads as it is usually written::
 
             NaturalRecallRegexStrategy.build(
                 ["a"], {"a": [(".*[q].*", "out"), (".*", "in")]})
@@ -453,7 +455,7 @@ class NaturalRecallRegexStrategy:
         """``compl(gamma_a^{NatR}) = sum ||regex||`` over the agent's pairs.
 
         Without an agent, the maximum over the coalition.  ``||r||`` is the
-        measure of Section 5.3, in which a leading ``top^*`` is free.
+        measure, in which a leading ``top^*`` is free.
         """
         if agent is not None:
             return sum(regex_complexity(pattern) for pattern, _ in self.sequences[agent])
@@ -479,7 +481,7 @@ class NaturalRecallRegexStrategy:
         return [action for _, action in self.sequences[agent]]
 
     def to_dfsts(self, alphabet: Sequence[Letter]) -> Dict[str, DFST]:
-        """Determinise: one NatDFST per agent, as Section 5.5 assumes."""
+        """Determinise: one NatDFST per agent, as the recall monitor assumes."""
         letters = tuple(alphabet)
         transducers: Dict[str, DFST] = {}
         for agent in self.coalition:
@@ -490,7 +492,7 @@ class NaturalRecallRegexStrategy:
         return transducers
 
     def to_dfst_strategy(self, alphabet: Sequence[Letter]) -> "NaturalRecallStrategy":
-        """The Section 5.5 form of this strategy."""
+        """The DFST form of this strategy."""
         return NaturalRecallStrategy(
             coalition=self.coalition, transducers=self.to_dfsts(alphabet)
         )

@@ -1,15 +1,15 @@
 # Measuring the asymptotic claims
 
-Twenty-one sweeps against the complexity claims of Propositions 1, 2, 4, 5 and
-6 — time and space, construction and runtime. Each varies one parameter, holds
-the rest fixed, and fits the measurements in log space; the fitted exponent is
-compared against the claimed one.
+Twenty-two sweeps against the complexity claims — time and space, construction
+and runtime. Each varies one parameter, holds the rest fixed, and fits the
+measurements in log space; the fitted exponent is compared against the claimed
+one.
 
 ```bash
-python 01_kbounded.py       # Props 1, 2  -- k-bounded and memoryless
-python 02_natural.py        # Prop 4      -- natural memoryless
-python 03_recall.py         # Prop 5      -- natural recall, product DFST
-python 04_adherence.py      # Prop 6      -- strategy-adherence M^S
+python 01_kbounded.py       # k-bounded and memoryless
+python 02_natural.py        # natural memoryless
+python 03_recall.py         # natural recall, product DFST
+python 04_adherence.py      # strategy-adherence M^S
 python 05_construction.py   # end-to-end construction, and space
 ```
 
@@ -28,10 +28,11 @@ point; the exponents are, and those are machine-independent.
 | 1D | lookup `O(1)` | `\|S\|` ×1024 | →1 024 000 | 0.00 | **0.046** | — |
 | 1E | `O(\|A\|·\|ω\|)` | `\|A\|` | →12 | linear | **0.422 µs/agent** | 0.999 |
 | 1F | same | `\|ω\|` | →1 024 000 | 1.00 | **1.00** | 1.000 |
-| 2A | `O(\|A\|·\|S\|·k²)` | k by gate count | k→8190 | ≤ 2.00 | **0.95** | 0.999 |
-| 2B | same | k by gate size | k→1600 | ≤ 2.00 | **0.97** | 0.999 |
+| 2A | `O(\|A\|·\|S\|·k)` | k by gate count | k→16 381 | 1.00 | **0.96** | 0.999 |
+| 2B | same | k by gate size | k→3999 | 1.00 | **0.98** | 0.998 |
 | 2C | same | `\|S\|` | →64 000 | 1.00 | **1.02** | 1.000 |
 | 2D | same | `\|A\|` | →12 | linear | linear | 1.000 |
+| 2E | same | k both ways at once | k→799 601 | 1.00 | **0.96** | 0.993 |
 | 3A | `O(m^{\|A\|}·2^{\|Ap\|}·\|A\|)` | `\|Ap\|` | →15 | ln 2 = 0.69 | **0.69** | 0.999 |
 | 3B | same | product size | →257 | 1.00 | **0.89** | 0.994 |
 | 3C | same | m | →1025 | 1.00 | **0.90** | 0.991 |
@@ -47,7 +48,7 @@ point; the exponents are, and those are machine-independent.
 ### The direct-address table earns its place
 
 The sharpest result is 1A against 1D. The table is built in `|S|^k`, but a
-lookup into it must not depend on `|S|` at all — which is why the paper
+lookup into it must not depend on `|S|` at all — which is why the implementation
 addresses it directly rather than hashing:
 
 ```
@@ -78,7 +79,7 @@ algorithm.
 
 Flat at 240 bytes per state over a 32× range (exponent 1.00, R² 1.000). At
 `k = 2` the same measurement gives 1.99, and the product DFST grows at ln 2 in
-`|Ap|` — so the "and space" half of Propositions 1, 2 and 5 holds as stated.
+`|Ap|` — so the "and space" half holds as stated.
 
 ### Construction: tabulation is the smaller half
 
@@ -94,18 +95,35 @@ tabulation is itself `Θ(|S|^k)`. Timing the whole pipeline:
 Both halves carry the same exponent, so the claim is unaffected; the split is
 worth knowing only because it says where the time goes.
 
-## Two bounds that hold but are not tight
+## Why the natural memoryless bound is linear in k, not quadratic
 
-**Proposition 4's `k²` is loose; the cost is `Θ(k)`.** Since
-`compl(γ) = Σ_{(gate,act)} |gate|`, evaluating every gate at a state costs the
-sum of the gate sizes, which *is* `k`. The proof reaches `k²` by bounding the
-number of gates by `k` and the cost of each by `k` separately, but under this
-definition the two cannot both be extremal: `g` gates of size `s` give
-`k = g·s` and work `g·s = k`. Growing `k` by gate count and by gate size gives
-0.95 and 0.97 over `k` up to 8190, so the bound can be tightened to
-`O(|A| · |S| · k)`.
+Since `compl(γ) = Σ_{(gate,act)} |gate|`, evaluating every gate at a state costs
+the sum of the gate sizes, which *is* `k`. The bound was first stated as `k²`, by
+bounding the number of gates by `k` and the cost of each by `k` separately, but
+under this definition the two cannot both be extremal: `g` gates of size `s`
+give `k = g·s`, and the scan does `g·s = k` work.
 
-**Proposition 5's `m^{|A|}` is a worst case rarely approached.** The product is
+The tempting counterexample — "`k/2` gates each of complexity `k/2`" — does not
+describe a strategy of complexity `k`. Its complexity is `(k/2)·(k/2) = k²/4`.
+Read the other way: a strategy that really has complexity `k` and `k/2` gates
+has gates of size 2, and costs `(k/2)·2 = k`.
+
+Sweeps 2A and 2B sit at the two extremes of the shape space (many gates of size
+one; one gate of many terms), so 2E grows both together — `side` gates of `side`
+terms each — which is the configuration the counterexample has in mind:
+
+```
+  side   gates   ~size/gate   compl = k   seconds
+  4      4       ~19          77          0.0022
+  64     64      ~319         20 417      0.2257
+  400    400     ~1999        799 601     11.9756
+```
+
+`k` grows 10 384× across that sweep while the time grows 5 429×, fitting 0.96.
+A quadratic scan would have grown by 10 384² and taken roughly 66 hours at the
+last point instead of 12 seconds.
+
+**The product-DFST bound `m^{|A|}` is a worst case rarely approached.** The product is
 built over *reachable* combinations, and two things keep it small:
 
 - identical strategies stay on the diagonal — give every agent the same regex
@@ -124,7 +142,7 @@ Sweep 2B originally crashed. A gate is a binary tree, so a wide conjunction is a
 deep tree, and every recursive traversal — `evaluate`, `variables`, `__str__` —
 overflowed CPython's 1000-frame stack past roughly 800 terms. It is depth that
 binds, not size: growing `k` by gate *count* (2A) has no such ceiling and ran to
-`k = 8190`.
+`k = 16 381`. `complexity` is iterative for the same reason.
 
 Fixing it needed no rewriting of the formula, so there is no blowup to trade
 against: the tree is untouched and only the traversal changes. Measuring the two
@@ -190,7 +208,7 @@ fixed overhead, R² 0.999.
 generated models agent 0's action fixes the successor, so a compliant walk by a
 coalition containing it is deterministic: it settles into a short cycle, visits
 4 of 25 states, and never validates enough windows for a counter to reach zero.
-Proposition 6's cascade and its positive verdict both went unmeasured until the
+The adherence monitor's cascade and its positive verdict both went unmeasured until the
 coalition was moved to agent 1 — with the fix, every run in 4B and 4C reaches
 `⊤ˢ_𝒢`, which is the evidence that the path executed.
 
@@ -205,8 +223,8 @@ behaviour on synthetic structure, not on any particular application.
 | File | |
 | --- | --- |
 | `bench.py` | model and strategy generators, timing, space, the three fits |
-| `01_kbounded.py` | Propositions 1 and 2, six sweeps |
-| `02_natural.py` | Proposition 4, four sweeps |
-| `03_recall.py` | Proposition 5, three sweeps |
-| `04_adherence.py` | Proposition 6, three sweeps |
+| `01_kbounded.py` | k-bounded and memoryless, six sweeps |
+| `02_natural.py` | natural memoryless, four sweeps |
+| `03_recall.py` | natural recall, three sweeps |
+| `04_adherence.py` | strategy adherence, three sweeps |
 | `05_construction.py` | end-to-end construction and space, five sweeps |

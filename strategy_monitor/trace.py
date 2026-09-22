@@ -1,6 +1,6 @@
 """Observed system evolutions.
 
-Section 5.2 fixes the trace semantics used throughout the paper::
+The trace semantics used throughout::
 
     omega = s_0 alpha_0 s_1 alpha_1 ...
 
@@ -24,7 +24,7 @@ class Trace:
 
     A trace holds ``n`` states and either ``n - 1`` or ``n`` action profiles; the
     latter is a trace whose last action has been observed but whose resulting
-    state has not (the form used in the example of Section 6.2).
+    state has not (the form used in the example).
     """
 
     states: List[str] = field(default_factory=list)
@@ -40,7 +40,7 @@ class Trace:
                 )
             )
 
-    # -- paper notation --------------------------------------------------
+    # -- notation --------------------------------------------------
 
     def __len__(self) -> int:
         """``|omega| = |omega_s| + |omega_alpha|``."""
@@ -86,12 +86,12 @@ class Trace:
     # -- model conformance -----------------------------------------------
 
     def check_against(self, cgs: CGS) -> List[str]:
-        """Return the ways this trace violates the CGS (Eq. 3 of Section 5.2).
+        """Return the ways this trace violates the CGS.
 
         An empty list means the trace is a legal evolution of the model: it
         starts in ``s_I``, only uses actions the protocol allows, and follows
         ``delta`` at every step.  A non-empty list is a *model violation*, which
-        Section 7.2 repairs.
+        Model repair absorbs.
         """
         problems: List[str] = []
         if not self.states:

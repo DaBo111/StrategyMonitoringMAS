@@ -21,7 +21,7 @@ EXAMPLES = os.path.join(ROOT, "examples")
 
 
 def running_example():
-    """The paper's running example G_E (Section 5.1, Figure 1).
+    """The running example G_E.
 
     Agents a and b own an idle action; idling from s0 reaches s2, the only
     state where p fails.  That is what makes it a natural witness for the

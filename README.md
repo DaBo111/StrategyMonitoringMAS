@@ -410,4 +410,4 @@ VITAMIN or Spot is absent.
 complexity claims it is built from: 21 sweeps over time and space,
 construction and runtime, each varying one parameter and fitting the exponent.
 
-[`paper-figures/`](paper-figures/README.md) is for reproducing the figures in the paper.
+[`figures/`](figures/README.md) is for reproducing the automata figures.

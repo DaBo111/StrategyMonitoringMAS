@@ -90,8 +90,7 @@ def natural_strategy(coalition, cgs, n_gates):
     """A natural memoryless strategy whose gates are ``n_gates`` long.
 
     The gates are unsatisfiable until the last, so the monitor builder has to
-    evaluate all of them at every state -- the worst case the ``k^2`` bound in
-    Proposition 4 is about.
+    evaluate all of them at every state -- the worst case the ``k`` bound is about.
     """
     ap = cgs.ap
     gates = [

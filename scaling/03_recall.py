@@ -1,10 +1,10 @@
-"""Proposition 5: the natural-recall monitor (product DFST).
+"""The natural-recall monitor (product DFST).
 
     construction O(m^|A| x 2^|Ap| x |A|) time and space,  m = max states of T_a
     runtime      O(|A| x |omega|)
 
 Three sweeps, one factor each: the alphabet 2^|Ap|, the product m^|A|, and m
-itself with a single agent.  This is the one construction the paper admits is
+itself with a single agent.  This is the one construction acknowledged to be
 exponential, so the point is to confirm the exponent rather than hope it is
 smaller than stated.
 """

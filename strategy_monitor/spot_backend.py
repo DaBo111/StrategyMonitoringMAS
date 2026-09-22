@@ -13,8 +13,8 @@ using:
 
 Only the LTL-to-Buchi step is delegated.  Everything after it -- the prefix
 NFA, the determinised monitor tables, the products with the CGS -- keeps
-running on this package's own automata, because the monitors of Sections 5 and
-6 consume letters from ``2^Ap`` one at a time.
+running on this package's own automata, because the monitors consume letters
+from ``2^Ap`` one at a time.
 
 The conversion is where the two models meet.  Spot labels an edge with a BDD
 over atomic propositions; we expand each edge into one transition per letter of

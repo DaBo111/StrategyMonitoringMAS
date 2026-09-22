@@ -1,6 +1,6 @@
 """Finite and Buchi automata over the explicit alphabet ``2^Ap``.
 
-The paper's Section 4.1 definitions are used verbatim: an NFA is
+The standard definitions are used verbatim: an NFA is
 ``(Q, Sigma, delta, Q_0, F)``, a DFA is the deterministic single-initial-state
 special case, and a Buchi automaton has the same shape but reads infinite words
 and accepts when ``F`` is visited infinitely often.
@@ -8,7 +8,7 @@ and accepts when ``F`` is visited infinitely often.
 Letters are ``frozenset`` subsets of ``Ap``, and the alphabet is enumerated
 explicitly.  That is quadratic-free and keeps every construction below a plain
 graph algorithm, at the price of a ``2^|Ap|`` alphabet -- acceptable for the
-model sizes a runtime monitor is built for, and the same trade-off the paper
+model sizes a runtime monitor is built for, and the same trade-off the construction
 makes when it writes ``I = 2^Ap``.
 """
 
@@ -509,7 +509,7 @@ def buchi_product(left: Buchi, right: Buchi, right_all_accepting: bool = False) 
     """Synchronous product accepting ``L(left) & L(right)``.
 
     When ``right`` has every state accepting -- which is the case for the Buchi
-    automaton read off a CGS in Section 6.2 -- the interleaving counter of the
+    automaton read off a CGS -- the interleaving counter of the
     general construction is unnecessary and the acceptance condition of the
     product is simply that of ``left``.  Pass ``right_all_accepting=True`` to
     take that shortcut; otherwise the standard two-copy construction is used.

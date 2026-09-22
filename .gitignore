@@ -1,0 +1,57 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Packaging / build
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+
+# Virtual environments (the project's own .venv lives one level up, but
+# cover the usual in-repo spellings too)
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Testing, typing, coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+
+# Generated automata figures. figures/test.py writes <name>.dot and
+# <name>.png next to itself; none of that output is tracked. Drop a rule
+# here if you ever want to commit a specific rendering.
+figures/*.dot
+figures/*.png
+
+# Scratch output from the scaling sweeps, if redirected to a file
+scaling/*.log
+scaling/*.txt
+
+# Editors / IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.spyproject/
+.ropeproject/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini

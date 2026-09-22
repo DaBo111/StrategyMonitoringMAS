@@ -1,5 +1,5 @@
 > **This is the original README of `test.py`**, the Spot-based script that
-> generated the automata figures for the paper. It is kept here for reference
+> generated the automata figures. It is kept here for reference
 > and is not part of the package, which lives in
 > [`../strategy_monitor/`](../strategy_monitor) and is documented in
 > [`../README.md`](../README.md).

@@ -1,4 +1,4 @@
-"""Regular expressions over ``Bool(Ap)`` -- ``Regex(Bool(Ap))`` of Section 5.3.
+"""Regular expressions over ``Bool(Ap)`` -- ``Regex(Bool(Ap))``
 
 A natural strategy with recall is a priority-ordered list of
 ``(regex, action)`` pairs, the regexes ranging over Boolean formulas rather than
@@ -15,10 +15,10 @@ Concrete syntax::
     r*   r+   r?       the usual closures
     (r)                grouping
 
-So ``.*[q & !p]`` is the paper's ``top^* (q & !p)``: "any history so far, whose
+So ``.*[q & !p]`` is the ``top^* (q & !p)``: "any history so far, whose
 last state satisfies q and not p".
 
-``complexity`` implements ``||r||`` of Section 5.3: ``||top^* r|| = ||r||``,
+``complexity`` implements ``||r||``: ``||top^* r|| = ||r||``,
 ``||top^*|| = 1``, and ``||r|| = |r|`` otherwise.
 """
 
@@ -219,7 +219,7 @@ def parse_regex(text: str) -> Regex:
 
 
 def complexity(pattern) -> int:
-    """``||r||`` of Section 5.3.
+    """``||r||``
 
     ``top^* r`` costs what ``r`` costs -- the "any prefix" idiom is free -- a
     bare ``top^*`` costs 1, and anything else costs its number of symbols.
@@ -359,7 +359,7 @@ def compile_regex_to_dfa(pattern, letters: Sequence[Letter]) -> DFA:
 
 
 def matches(pattern, word: Sequence[Letter]) -> bool:
-    """Does ``word`` match the regex?  The reference semantics of Section 5.3.
+    """Does ``word`` match the regex?  The reference semantics
 
     Alphabet-free: the Thompson automaton is built with the Boolean gates left
     on its edges and evaluated against each letter as it is read, so this does

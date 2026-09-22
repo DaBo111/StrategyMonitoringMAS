@@ -14,7 +14,7 @@ from strategy_monitor.vitamin import atl_model_check, natatl_synthesize
 
 model = running_example()
 
-rule("The paper's running example, coalition {a, b}, objective G p")
+rule("The running example, coalition {a, b}, objective G p")
 print("  s0 --(*,*,in)--> s0      s0 --(in,in,out)...--> s1")
 print("  s0 --(idle,*,*)--> s2    and s2 is the only !p state")
 print()

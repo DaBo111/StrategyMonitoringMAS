@@ -1,9 +1,9 @@
-"""Strategy monitors -- Sections 5.2, 5.4, 5.5 and 6.1.
+"""Strategy monitors.
 
 Every monitor consumes a trace ``s_0 alpha_0 s_1 alpha_1 ...`` incrementally
 through :meth:`StrategyMonitor.observe` and reports a :class:`Verdict` after
 each step.  All of them are *sticky*: once a conclusive verdict is reached it is
-kept, since the paper's monitors never retract a decision.
+kept, since the monitors never retract a decision.
 """
 
 from __future__ import annotations
@@ -28,14 +28,14 @@ DEFAULT_MAX_DENSE_TABLE = 1 << 22
 
 
 # ======================================================================
-# the sliding memory-configuration index of Proposition 2
+# the sliding memory-configuration index
 # ======================================================================
 
 
 class WindowIndex:
     """Direct-address index over ``union_{k' <= k} S^{k'}``.
 
-    Implements the addressing scheme of Proposition 2: the block for histories
+    Implements the addressing scheme: the block for histories
     of length ``m`` starts at ``o_m = sum_{m' < m} |S|^{m'}`` and a history ``h``
     sits at ``o_{|h|} + sum_{t < |h|} id(h[t]) * |S|^{|h|-1-t}``.  The index is
     *maintained* rather than recomputed, in a constant number of arithmetic
@@ -152,7 +152,7 @@ class StrategyMonitor:
     def resume_at(self, state: str) -> Verdict:
         """Restart observation at ``state`` with no action outstanding.
 
-        Used when the repair procedure of Section 7 pauses the system, replaces
+        Used when the repair procedure pauses the system, replaces
         the strategy, and resumes from ``q_curr``: the action that triggered the
         repair has already been dealt with, so the monitor takes ``q_curr`` as
         its new starting point rather than waiting for that action again.
@@ -197,8 +197,8 @@ class StrategyMonitor:
     ) -> None:
         """Compare the observed profile with the prescription, agent by agent.
 
-        Attribution per agent is what makes the coalition repair of Section 7.1
-        possible; the loop is the ``O(|A|)`` per-step cost of Propositions 1--5.
+        Attribution per agent is what makes the coalition repair
+        possible; the loop is the ``O(|A|)`` per-step cost.
         """
         state = self.current_state
         for agent in self.coalition:
@@ -218,15 +218,15 @@ class StrategyMonitor:
 
 
 # ======================================================================
-# k-bounded monitor (Section 5.2, Propositions 1 and 2)
+# k-bounded monitor
 # ======================================================================
 
 
 class KBoundedMonitor(StrategyMonitor):
-    """``M_{Gamma_A}`` of Eq. (4).
+    """``M_{Gamma_A}``.
 
-    The monitor is the direct-address table ``H_{Gamma_A}`` of Section 5.2,
-    addressed by the sliding index of Proposition 2.  Construction is
+    The monitor is the direct-address table ``H_{Gamma_A}``,
+    addressed by the sliding index.  Construction is
     ``O(|S|^k x |A|)`` time and space; each observation costs ``O(|A|)``.
     """
 
@@ -279,11 +279,11 @@ class KBoundedMonitor(StrategyMonitor):
 
 
 class NaturalMemorylessMonitor(KBoundedMonitor):
-    """``M_{Gamma_A^{Natr}}`` of Section 5.4.
+    """``M_{Gamma_A^{Natr}}``
 
-    Proposition 4 shows a natural memoryless strategy induces a state-indexed
+    A natural memoryless strategy induces a state-indexed
     table, making this monitor equivalent to the 1-bounded monitor above; the
-    reduction is Algorithm 1, run by
+    reduction is run by
     :meth:`~strategy_monitor.strategies.NaturalMemorylessStrategy.to_kbounded`.
     """
 
@@ -293,13 +293,13 @@ class NaturalMemorylessMonitor(KBoundedMonitor):
 
 
 # ======================================================================
-# natural strategy with recall (Section 5.5, Proposition 5)
+# natural strategy with recall
 # ======================================================================
 
 
 _NO_NFA_MESSAGE = (
     "this engine needs the regular-expression-sequence form; the DFST form of "
-    "Section 5.5 has no NFA left to simulate. Build the strategy with "
+    "the recall monitor has no NFA left to simulate. Build the strategy with "
     "NaturalRecallRegexStrategy, or monitor with determinize='dfa'."
 )
 
@@ -343,7 +343,7 @@ class RecallEngine:
 
 
 class ProductDFSTEngine(RecallEngine):
-    """Determinise at construction: the product DFST of Proposition 5.
+    """Determinise at construction: the product DFST.
 
     Each regex becomes a DFA, the prioritised DFAs of one agent are producted
     into a NatDFST, and the agents' transducers are producted again.  A step is
@@ -566,13 +566,13 @@ def resolve_recall_engine(determinize) -> str:
 
 
 class NaturalRecallMonitor(StrategyMonitor):
-    """``M_{Gamma_A^{NatR}}``: the recall monitor of Section 5.5, run online.
+    """``M_{Gamma_A^{NatR}}``: the recall monitor, run online.
 
     The engine reads ``pi(s_j)`` at every step and yields the action profile the
     coalition ought to play; the monitor compares it, agent by agent, with what
     was observed.  ``determinize`` chooses where the work happens:
 
-    * ``"dfa"`` (or ``True``, the default) -- Proposition 5's construction.  The
+    * ``"dfa"`` (or ``True``, the default) -- the product-DFST construction.  The
       regexes are determinised into DFSTs and producted up front, which can be
       exponential, and each step is then one lookup.
     * ``"nfa"`` (or ``False``) -- the automata are kept as NFAs and simulated.
@@ -625,14 +625,14 @@ class NaturalRecallMonitor(StrategyMonitor):
 
 
 # ======================================================================
-# strategy-adherence truth (Section 6.1)
+# strategy-adherence truth
 # ======================================================================
 
 
 class AdherenceMonitor(KBoundedMonitor):
     """``M^S_{Gamma_A}``: the ``k``-bounded monitor with the ``top^S_G`` verdict.
 
-    Section 6.1 relativises strategy-adherence to the model.  Write
+    The adherence monitor relativises strategy-adherence to the model.  Write
     ``W_G(s)`` for the windows still observable from ``s`` -- the length-``k``
     *paths of the CGS* whose first state is reachable from ``s`` -- and
     ``s_cur`` for the last observed state.  Then
@@ -737,7 +737,7 @@ class AdherenceMonitor(KBoundedMonitor):
 
 
 class NaturalMemorylessAdherenceMonitor(AdherenceMonitor):
-    """``M^S`` for a natural memoryless strategy, via the Algorithm 1 reduction."""
+    """``M^S`` for a natural memoryless strategy, via the reduction."""
 
     def __init__(self, cgs: CGS, strategy: NaturalMemorylessStrategy, strict: bool = True, **kwargs) -> None:
         self.natural_strategy = strategy

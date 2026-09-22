@@ -1,4 +1,4 @@
-"""The repair pipeline of Section 7 and the VITAMIN bridge."""
+"""The repair pipeline and the VITAMIN bridge."""
 
 import pytest
 
@@ -30,7 +30,7 @@ def solo_b():
 
 
 # ======================================================================
-# Section 7.1 -- coalition strategy violation
+# coalition strategy violation
 # ======================================================================
 
 
@@ -102,7 +102,7 @@ class TestCoalitionRepair:
 
 
 # ======================================================================
-# Section 7.2 -- model violation
+# model violation
 # ======================================================================
 
 
@@ -449,7 +449,7 @@ class TestVitaminExportValidation:
         check_exportable(self._model(actions={"a": ["move_fast", "MOVE", "x-1"]}))
 
     def test_repaired_models_stay_exportable(self, running_example):
-        """Section 7.2 can add states and actions; the result must still export."""
+        """Model repair can add states and actions; the result must still export."""
         from strategy_monitor.vitamin import check_exportable
 
         repaired = running_example.with_transition("s0", ("panic", "in", "out"), "s4")

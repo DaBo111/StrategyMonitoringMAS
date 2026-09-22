@@ -1,8 +1,8 @@
-"""Reproduce every worked example of the paper.
+"""Reproduce every worked example.
 
     python -m strategy_monitor demo
 
-Each section prints what the paper claims and what the implementation produces,
+Each section prints the expected result and what the implementation produces,
 so the two can be compared directly.
 """
 
@@ -46,7 +46,7 @@ def _letters(cgs: CGS, states) -> str:
 
 
 def demo_running_example() -> CGS:
-    _rule("Section 5.1 -- the running example G_E")
+    _rule("The running example G_E")
     cgs = CGS.from_json(os.path.join(EXAMPLES, "running_example.json"))
     print(cgs)
     print()
@@ -58,7 +58,7 @@ def demo_running_example() -> CGS:
 
 
 def demo_kbounded(cgs: CGS) -> None:
-    _rule("Section 5.2 -- k-bounded (memoryless) strategy monitor")
+    _rule("K-bounded (memoryless) strategy monitor")
     strategy = KBoundedStrategy.memoryless(
         ["a", "b"],
         {
@@ -71,10 +71,10 @@ def demo_kbounded(cgs: CGS) -> None:
     strategy.validate(cgs)
     print(strategy)
     print()
-    print("paper: M = {(s0,(in,in)), (s1,(out,out)), (s2,(out,out)), (s3,(out,out))}")
+    print("expected: M = {(s0,(in,in)), (s1,(out,out)), (s2,(out,out)), (s3,(out,out))}")
     print()
 
-    print("The paper says traces with prefixes in")
+    print("Traces with prefixes in")
     print("  {(s0 (in,in,any))^+ (s1 (out,out,any))^*}")
     print("get '?' and every other trace gets 'bot'.")
     print()
@@ -92,7 +92,7 @@ def demo_kbounded(cgs: CGS) -> None:
             print("      {0}".format(violation))
 
     print()
-    print("Proposition 2 -- the direct-address table for k = 2:")
+    print("The direct-address table for k = 2:")
     index = WindowIndex(cgs, 2)
     print("  offsets o_m        : {0}".format(index.offsets[: index.k + 2]))
     print("  table capacity     : {0} entries  (sum_{{k' <= 2}} |S|^k' = 1 + 4 + 16)".format(index.capacity))
@@ -107,7 +107,7 @@ def demo_kbounded(cgs: CGS) -> None:
 
 
 def demo_natural_memoryless(cgs: CGS) -> None:
-    _rule("Sections 5.3-5.4 -- natural memoryless strategy monitor (Algorithm 1)")
+    _rule("Natural memoryless strategy monitor")
     strategy = NaturalMemorylessStrategy.build(
         ["a", "b"],
         {
@@ -118,7 +118,7 @@ def demo_natural_memoryless(cgs: CGS) -> None:
     print(strategy)
     print()
     table = strategy.to_kbounded(cgs)
-    print("Algorithm 1 gives:")
+    print("The reduction gives:")
     for window in sorted(table.table):
         actions = table.table[window]
         state = window[0]
@@ -131,7 +131,7 @@ def demo_natural_memoryless(cgs: CGS) -> None:
             )
         )
     print()
-    print("paper: M = {(s0,(in,in)), (s1,(in,in)), (s2,(out,out)), (s3,(in,in))}")
+    print("expected: M = {(s0,(in,in)), (s1,(in,in)), (s2,(out,out)), (s3,(in,in))}")
     print()
     monitor = NaturalMemorylessMonitor(cgs, strategy)
     trace = replay(cgs, [("in", "in", "out"), ("in", "in", "in")])
@@ -144,11 +144,11 @@ def demo_natural_memoryless(cgs: CGS) -> None:
 
 
 def demo_natural_recall(cgs: CGS) -> None:
-    _rule("Section 5.5 -- natural strategy with recall")
+    _rule("Natural strategy with recall")
     letters = alphabet_of(cgs.ap)
 
     print("A recall strategy is specified as a priority-ordered sequence of")
-    print("(regex, action) pairs (Section 5.3); the agent plays the action of the")
+    print("(regex, action) pairs; the agent plays the action of the")
     print("first regex the observed history matches.")
     print()
     strategy = NaturalRecallRegexStrategy.build(
@@ -220,7 +220,7 @@ def demo_natural_recall(cgs: CGS) -> None:
     print("  so it pays the DFA's per-step cost without its construction cost.")
 
     print()
-    print("Section 5.5 monitors the DFST form, which is also available directly:")
+    print("The DFST form is also available directly:")
     dfst_form = strategy.to_dfst_strategy(letters)
     print(
         "  to_dfst_strategy -> {0} NatDFSTs, {1} states each at most".format(
@@ -236,7 +236,7 @@ def demo_natural_recall(cgs: CGS) -> None:
 
 
 def demo_adherence(running: CGS) -> None:
-    _rule("Section 6.1 -- strategy-adherence truth M^S, relativised to the model")
+    _rule("Strategy-adherence truth M^S, relativised to the model")
     cgs = CGS.from_json(os.path.join(EXAMPLES, "revised_example.json"))
     print(cgs)
     print()
@@ -249,7 +249,7 @@ def demo_adherence(running: CGS) -> None:
     print("The verdict is top^S_G once W_G(s_cur) -- the windows still observable")
     print("from the current state -- have all been observed and validated.")
     print()
-    print("paper: M^S returns top^S_G for any trace with prefix")
+    print("expected: M^S returns top^S_G for any trace with prefix")
     print("       s0 (in,*,*) s1 (out,*,*) s2 (out,*,*) s3 (in,*,*)")
     print()
     monitor = AdherenceMonitor(cgs, strategy)
@@ -314,7 +314,7 @@ def demo_adherence(running: CGS) -> None:
 
 
 def demo_goal(cgs: CGS) -> None:
-    _rule("Section 6.2 -- goal-oriented truth M^G")
+    _rule("Goal-oriented truth M^G")
     goal = "G(p | (q & X p))"
     refined = GoalMonitor(cgs, goal, use_model=True)
     plain = GoalMonitor(cgs, goal, use_model=False)
@@ -322,12 +322,12 @@ def demo_goal(cgs: CGS) -> None:
     print("refined (intersected with the CGS): {0}".format(refined.sizes()))
     print("plain   (from the formula alone)  : {0}".format(plain.sizes()))
     print()
-    print("The paper's example: omega = s0 (in,in,out) s1 (in,in,in)")
+    print("The example: omega = s0 (in,in,out) s1 (in,in,in)")
     trace = replay(cgs, [("in", "in", "out"), ("in", "in", "in")])
     word = trace.word(cgs)
     print("  pi(omega_s) = {0}".format(_letters(cgs, trace.states)))
     print("  plain LTL monitor : {0}".format(plain.evaluate(word)))
-    print("  refined M^G       : {0}   <- the paper's claim".format(refined.evaluate(word)))
+    print("  refined M^G       : {0}   <- the claim".format(refined.evaluate(word)))
     print()
     print("top^G_G is relativised too: it certifies phi on every continuation that")
     print("respects the CGS, and is superseded by bot^M should the system leave it:")
@@ -408,7 +408,7 @@ def demo_modularity(cgs: CGS) -> None:
 
 
 def demo_repair(cgs: CGS, skip_vitamin: bool) -> None:
-    _rule("Section 7 -- strategy repair")
+    _rule("Strategy repair")
     if skip_vitamin:
         print("skipped (--no-vitamin)")
         return
