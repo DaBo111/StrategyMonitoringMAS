@@ -5,7 +5,7 @@ import random
 
 import pytest
 
-from strategy_monitor.cgs import CGS
+from strategy_monitor.cgs import CGS, CGSError
 from strategy_monitor.goal import GoalMonitor
 from strategy_monitor.ltl import alphabet_of, parse_ltl, satisfies
 from strategy_monitor.monitors import (
@@ -14,6 +14,7 @@ from strategy_monitor.monitors import (
     NaturalMemorylessMonitor,
     NaturalRecallMonitor,
     WindowIndex,
+    _model_window_addresses,
     model_windows,
     observable_windows,
     reachable_from,
@@ -69,6 +70,15 @@ class TestWindowIndex:
                 assert address not in seen, (window, seen.get(address))
                 assert 0 <= address < index.capacity
                 seen[address] = window
+
+    @pytest.mark.parametrize("k", [1, 2, 3])
+    def test_windows_come_in_address_order(self, running_example, k):
+        """What lets construction take each address as a running count."""
+        index = WindowIndex(running_example, k)
+        assert [index.index_of(w) for w in index.windows()] == list(range(1, index.capacity))
+        assert [index.index_of(w) for w in index.windows(k)] == list(
+            range(index.offsets[k], index.capacity)
+        )
 
 
 class TestKBoundedMonitor:
@@ -149,6 +159,36 @@ class TestKBoundedMonitor:
         trace = replay(running_example, actions)
         assert dense.run(trace) is sparse.run(Trace(list(trace.states), list(trace.actions)))
         assert dense.dense and not sparse.dense
+
+    @pytest.mark.parametrize("dense", [True, False])
+    def test_table_does_not_depend_on_how_the_strategy_is_given(self, running_example, dense):
+        """In address order it is laid out by counting; shuffled or partial, entry by entry."""
+        # every window prescribes something different, so a misplaced entry shows
+        total = KBoundedStrategy.from_function(
+            running_example, ["a"], 3, lambda window, agent: "-".join(window)
+        )
+        entries = list(total.table.items())
+        random.Random(0).shuffle(entries)
+        index = WindowIndex(running_example, 3)
+        for table in (total.table, dict(entries), dict(entries[: len(entries) // 3])):
+            monitor = KBoundedMonitor(
+                running_example, KBoundedStrategy(("a",), 3, table), dense=dense
+            )
+            expected = {index.index_of(window): actions for window, actions in table.items()}
+            stored = monitor.table if not dense else {
+                address: actions for address, actions in enumerate(monitor.table) if actions
+            }
+            assert stored == expected
+
+    def test_a_key_that_is_no_window_is_still_rejected(self, running_example):
+        """Even when the table has exactly as many entries as there are windows."""
+        total = KBoundedStrategy.from_function(running_example, ["a"], 2, lambda w, a: "in")
+        for bad, error in [(("s0", "nowhere"), CGSError), (("s0", "s1", "s2"), ValueError)]:
+            table = dict(total.table)
+            del table[("s0", "s1")]
+            table[bad] = {"a": "in"}
+            with pytest.raises(error):
+                KBoundedMonitor(running_example, KBoundedStrategy(("a",), 2, table))
 
     def test_invalid_strategy_is_rejected(self, running_example):
         bad = KBoundedStrategy.memoryless(["c"], {"s0": {"c": "idle"}})
@@ -392,6 +432,14 @@ class TestModelWindows:
 
     def test_length_one_windows_are_the_states(self, running_example):
         assert model_windows(running_example, 1) == {(s,) for s in running_example.states}
+
+    @pytest.mark.parametrize("k", [1, 2, 3])
+    def test_addresses_follow_from_prefixes(self, running_example, k):
+        """The obligations of M^S, addressed by extension rather than from scratch."""
+        index = WindowIndex(running_example, k)
+        addresses = _model_window_addresses(running_example, index)
+        assert set(addresses) == model_windows(running_example, k)
+        assert all(address == index.index_of(w) for w, address in addresses.items())
 
     def test_reach_is_reflexive(self, running_example):
         reach = reachable_from(running_example)

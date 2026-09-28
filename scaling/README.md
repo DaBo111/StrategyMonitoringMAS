@@ -21,28 +21,31 @@ Measured on CPython 3.10.0, Windows 11, AMD64.
 
 | | Claim | Varied | Range | Predicted | Measured | R² |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1A | `O(\|S\|^k·\|A\|)` time | `\|S\|`, k=1 | →256 000 | 1.00 | **1.04** | 1.000 |
-| 1B | same | `\|S\|`, k=2 | →1024 | 2.00 | **2.02** | 1.000 |
-| 1C | same | k, `\|S\|`=5 | k→9 | ln 5 = 1.61 | **1.79** | 1.000 |
-| 1D | lookup `O(1)` | `\|S\|` ×1024 | →1 024 000 | 0.00 | **0.046** | — |
-| 1E | `O(\|A\|·\|ω\|)` | `\|A\|` | →12 | linear | **0.422 µs/agent** | 0.999 |
+| 1A | `O(\|S\|^k·\|A\|)` time | `\|S\|`, k=1 | →256 000 | 1.00 | **1.03** | 0.997 |
+| 1B | same | `\|S\|`, k=2 | →1024 | 2.00 | **2.10** | 1.000 |
+| 1C | same | k, `\|S\|`=5 | k→9 | ln 5 = 1.61 | **1.59** | 0.997 |
+| 1D | lookup `O(1)` | `\|S\|` ×1024 | →1 024 000 | 0.00 | **0.038** | — |
+| 1E | `O(\|A\|·\|ω\|)` | `\|A\|` | →12 | linear | **0.425 µs/agent** | 0.999 |
 | 1F | same | `\|ω\|` | →1 024 000 | 1.00 | **1.00** | 1.000 |
-| 2A | `O(\|A\|·\|S\|·k)` | k by gate count | k→16 381 | 1.00 | **0.96** | 0.999 |
-| 2B | same | k by gate size | k→3999 | 1.00 | **0.98** | 0.998 |
-| 2C | same | `\|S\|` | →64 000 | 1.00 | **1.02** | 1.000 |
+| 2A | `O(\|A\|·\|S\|·k)` | k by gate count | k→16 381 | 1.00 | **0.98** | 0.999 |
+| 2B | same | k by gate size | k→3999 | 1.00 | **0.98** | 0.999 |
+| 2C | same | `\|S\|` | →64 000 | 1.00 | **0.98** | 1.000 |
 | 2D | same | `\|A\|` | →12 | linear | linear | 1.000 |
-| 2E | same | k both ways at once | k→799 601 | 1.00 | **0.96** | 0.993 |
-| 3A | `O(m^{\|A\|}·2^{\|Ap\|}·\|A\|)` | `\|Ap\|` | →15 | ln 2 = 0.69 | **0.69** | 0.999 |
-| 3B | same | product size | →257 | 1.00 | **0.89** | 0.994 |
+| 2E | same | k both ways at once | k→799 601 | 1.00 | **0.96** | 0.994 |
+| 3A | `O(m^{\|A\|}·2^{\|Ap\|}·\|A\|)` | `\|Ap\|` | →15 | ln 2 = 0.69 | **0.68** | 0.999 |
+| 3B | same | product size | →257 | 1.00 | **0.87** | 0.992 |
 | 3C | same | m | →1025 | 1.00 | **0.90** | 0.991 |
-| 4A | `O(\|S\|^k·\|A\| + \|S\|·\|E\|)` | `\|S\|`, k=1 | →1024 | 2.00 | **2.03** | 1.000 |
+| 4A | `O(\|S\|^k·\|A\| + \|S\|·\|E\|)` | `\|S\|`, k=1 | →1024 | 2.00 | **1.96** | 1.000 |
 | 4B | `O(\|A\|·\|ω\|)` | `\|ω\|` | →640 000 | 1.00 | **1.00** | 1.000 |
-| 4C | verdict test `O(1)` | `\|S\|` ×32 | →800 | 0.00 | **0.008** | — |
-| 5A | construction, end to end | `\|S\|`, k=1 | →128 000 | 1.00 | **1.05** | 1.000 |
-| 5B | construction, end to end | `\|S\|`, k=2 | →1024 | 2.00 | **2.06** | 1.000 |
+| 4C | verdict test `O(1)` | `\|S\|` ×32 | →800 | 0.00 | **0.005** | — |
+| 5A | construction, end to end | `\|S\|`, k=1 | →128 000 | 1.00 | **1.03** | 0.991 |
+| 5B | construction, end to end | `\|S\|`, k=2 | →1024 | 2.00 | **2.13** | 1.000 |
 | 5C | **space** `O(\|S\|·\|A\|)` | `\|S\|`, k=1 | →64 000 | 1.00 | **1.00** | 1.000 |
 | 5D | **space** `O(\|S\|^k)` | `\|S\|`, k=2 | →1024 | 2.00 | **1.99** | 1.000 |
 | 5E | **space** `2^{\|Ap\|}` | `\|Ap\|` | →14 | ln 2 = 0.69 | **0.68** | 0.998 |
+
+The fits above their claim, at `k = 2`, are the memory hierarchy, not extra work — see
+[Construction counts addresses](#construction-counts-addresses).
 
 ### The direct-address table gives constant time
 
@@ -52,15 +55,15 @@ addresses it directly rather than hashing:
 
 ```
   |S|         microseconds/step
-  1000        2.98
-  4000        3.00
-  16000       2.97
-  64000       3.06
-  256000      3.28
-  1024000     4.02
+  1000        2.855
+  4000        2.870
+  16000       2.874
+  64000       2.956
+  256000      3.433
+  1024000     3.702
 ```
 
-`|S|` grows **1024×** and the per-step cost grows **1.35×**. The residual is *probably* the
+`|S|` grows **1024×** and the per-step cost grows **1.30×**. The residual is *probably* the
 memory hierarchy: a million-entry list probably got cache missed.
 
 ### Space is also as claimed
@@ -68,7 +71,7 @@ memory hierarchy: a million-entry list probably got cache missed.
 ```
   |S|     capacity  peak MB  bytes per state
   2000    2001      0.46     241
-  4000    4001      0.92     240
+  4000    4001      0.92     241
   8000    8001      1.83     240
   16000   16001     3.66     240
   32000   32001     7.33     240
@@ -79,16 +82,35 @@ Flat at 240 bytes per state over a 32× range (exponent 1.00, R² 1.000). At
 `k = 2` the same measurement gives 1.99, and the product DFST grows at ln 2 in
 `|Ap|` - so the "and space" half holds as stated.
 
-### Construction: tabulation is the smaller half
+### Construction: tabulation is the larger share
 
 Tests 1A–1B time the monitor with its strategy already tabulated, but
 tabulation is itself `Θ(|S|^k)`. Timing the whole pipeline:
 
 | `\|S\|`, k=2 | windows | tabulate | monitor | total | tabulate share |
 | --- | --- | --- | --- | --- | --- |
-| 64 | 4 160 | 0.0024 | 0.0068 | 0.0092 | 26% |
-| 256 | 65 792 | 0.0448 | 0.1105 | 0.1553 | 29% |
-| 1024 | 1 049 600 | 0.9105 | 1.8225 | 2.7330 | 33% |
+| 64 | 4 160 | 0.0024 | 0.0015 | 0.0039 | 62% |
+| 256 | 65 792 | 0.0480 | 0.0295 | 0.0774 | 62% |
+| 1024 | 1 049 600 | 0.9215 | 0.4891 | 1.4106 | 65% |
+
+It was the smaller, at 33% for `|S| = 1024`, until construction stopped
+recomputing addresses.
+
+### Construction counts addresses
+
+1C used to fit **1.79** against ln 5 = 1.61. The monitor was built by computing
+each window's address from its `k` states with `index_of` — a factor `k` the
+claim does not have. Construction now walks the windows in address order and
+takes each address as a running count; `index_of` is left for tables not
+tabulated in that order, and `M^S` addresses its obligations by extending their
+prefixes. 1C now fits **1.59**, and the `k = 2` monitor at `|S| = 1024` builds
+in 0.49 s instead of 1.82 s.
+
+What excess remains at `k = 2` (1B, 5B) is the memory hierarchy, not operation
+count. Per window, construction costs 0.35–0.39 µs up to 20 880 windows and
+0.45–0.47 µs from 46 872 to 1 049 600, flat over the last 22×; fitting
+`|S| ≥ 216` alone gives **2.02**. Tabulation, 65% of 5B, climbs from 0.58 to
+0.88 µs per window as its dict outgrows the cache.
 
 
 ## A CPython technicality on recursion depth

@@ -403,11 +403,11 @@ action named `*`.
 python -m pytest tests -q
 ```
 
-310 tests, about a minute. 287 need no optional dependency; the rest skip when
+319 tests, about a minute. 296 need no optional dependency; the rest skip when
 VITAMIN or Spot is absent.
 
 [`scaling/`](scaling/README.md) measures the implementation against the
-complexity claims it is built from: 21 sweeps over time and space,
+complexity claims it is built from: 22 sweeps over time and space,
 construction and runtime, each varying one parameter and fitting the exponent.
 
 [`figures/`](figures/README.md) is for reproducing the automata figures.

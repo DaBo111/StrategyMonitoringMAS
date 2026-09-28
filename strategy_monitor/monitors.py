@@ -45,6 +45,10 @@ class WindowIndex:
       ``idx' = o_{m+1} + (idx - o_m) * |S| + id(s)``;
     * once full it slides by
       ``idx' = o_k + ((idx - o_k) mod |S|^{k-1}) * |S| + id(s)``.
+
+    Construction does not recompute addresses either: :meth:`windows` yields
+    the windows in address order, so a table filled from it takes each address
+    as a running count.
     """
 
     def __init__(self, cgs: CGS, k: int) -> None:
@@ -87,20 +91,30 @@ class WindowIndex:
         return self.value
 
     def index_of(self, window: Sequence[str]) -> int:
-        """Non-incremental address of a window, used when building the table."""
+        """Address of a window computed from its states, in ``O(k)``.
+
+        Off the hot paths: :meth:`push` maintains the address at runtime, and a
+        strategy tabulated in address order is laid out by counting.  This
+        serves other tables and reporting.
+        """
         length = len(window)
         if length > self.k:
             raise ValueError("window longer than k")
-        value = self.offsets[length]
-        for position, state in enumerate(window):
-            value += self.cgs.index(state) * self.size ** (length - 1 - position)
-        return value
+        value = 0
+        for state in window:  # Horner's rule on the base-|S| numeral
+            value = value * self.size + self.cgs.index(state)
+        return self.offsets[length] + value
 
     def windows(self, min_length: int = 1) -> Iterable[Window]:
-        """Every memory configuration of length between ``min_length`` and ``k``."""
-        for length in range(min_length, self.k + 1):
-            for combination in itertools.product(self.cgs.states, repeat=length):
-                yield combination
+        """Every memory configuration of length between ``min_length`` and ``k``.
+
+        In address order: the ``n``-th window yielded, counting from 0, sits
+        at ``o_{min_length} + n``.
+        """
+        return itertools.chain.from_iterable(
+            itertools.product(self.cgs.states, repeat=length)
+            for length in range(min_length, self.k + 1)
+        )
 
 
 # ======================================================================
@@ -247,13 +261,31 @@ class KBoundedMonitor(StrategyMonitor):
         # Build the table: one pass over the configurations, one over the agents.
         if dense:
             self.table: List[Optional[Dict[str, str]]] = [None] * self.index.capacity
-            for window, actions in strategy.table.items():
-                self.table[self.index.index_of(window)] = dict(actions)
         else:
             self.table = {}
-            for window, actions in strategy.table.items():
-                self.table[self.index.index_of(window)] = dict(actions)
+        self._fill(strategy.table)
         self._current_index = self.index.value
+
+    def _fill(self, prescriptions: Mapping[Window, Mapping[str, str]]) -> None:
+        """Store each prescription at its window's address.
+
+        A strategy tabulated over every window of length at most ``k``, in
+        address order -- as :meth:`KBoundedStrategy.from_function` and the
+        natural-strategy reduction tabulate it -- is laid out by counting: its
+        entries are matched against :meth:`WindowIndex.windows` in turn, so each
+        address is a running count, not recomputed from the ``k`` states of its
+        window.  Any other table is addressed entry by entry, ``O(k)`` each.
+        """
+        if len(prescriptions) == self.index.capacity - 1:
+            entries = zip(self.index.windows(), prescriptions.items())
+            for address, (window, (key, actions)) in enumerate(entries, 1):
+                if key != window:
+                    break  # not in address order
+                self.table[address] = dict(actions)
+            else:
+                return
+        for window, actions in prescriptions.items():
+            self.table[self.index.index_of(window)] = dict(actions)
 
     def _lookup(self, address: int) -> Optional[Dict[str, str]]:
         if self.dense:
@@ -665,17 +697,16 @@ class AdherenceMonitor(KBoundedMonitor):
     def __init__(self, cgs: CGS, strategy: KBoundedStrategy, **kwargs) -> None:
         super().__init__(cgs, strategy, **kwargs)
         self.reach = reachable_from(cgs)
-        self.obligations = model_windows(cgs, self.k)
+        self._addresses = _model_window_addresses(cgs, self.index)
+        self.obligations = self._addresses.keys()  # model_windows(cgs, k), set-like
         self.total_obligations = len(self.obligations)
         self.remaining = self.total_obligations
 
         self._pending = bytearray(self.index.capacity)
         self._c: Dict[str, int] = {state: 0 for state in cgs.states}
-        for window in self.obligations:
-            address = self.index.index_of(window)
-            if not self._pending[address]:
-                self._pending[address] = 1
-                self._c[window[0]] += 1
+        for window, address in self._addresses.items():
+            self._pending[address] = 1
+            self._c[window[0]] += 1
         self._n: Dict[str, int] = {
             state: sum(1 for target in self.reach[state] if self._c[target] > 0)
             for state in cgs.states
@@ -725,7 +756,7 @@ class AdherenceMonitor(KBoundedMonitor):
 
     def pending_configurations(self) -> List[Window]:
         """Every window not yet validated. ``O(|S|^k)``; for reporting only."""
-        return sorted(w for w in self.obligations if self._pending[self.index.index_of(w)])
+        return sorted(w for w, address in self._addresses.items() if self._pending[address])
 
     def pending_from(self, state: Optional[str] = None) -> List[Window]:
         """``W_G(state)`` minus what has been validated -- the real obligation."""
@@ -778,6 +809,28 @@ def model_windows(cgs: CGS, k: int) -> Set[Window]:
             for successor in cgs.successors(window[-1])
         }
     return windows
+
+
+def _model_window_addresses(cgs: CGS, index: WindowIndex) -> Dict[Window, int]:
+    """:func:`model_windows` for ``index.k``, each window with its address.
+
+    Every path extends a shorter one, so its address follows from its prefix's
+    in ``O(1)`` -- the step :meth:`WindowIndex.push` takes while a window is
+    filling -- rather than being recomputed from its ``k`` states.
+    """
+    offsets, size = index.offsets, index.size
+    level = {(state,): offsets[1] + cgs.index(state) for state in cgs.states}
+    if index.k > 1:
+        successors = {state: cgs.successors(state) for state in cgs.states}
+        for length in range(1, index.k):
+            level = {
+                window + (successor,): offsets[length + 1]
+                + (address - offsets[length]) * size
+                + cgs.index(successor)
+                for window, address in level.items()
+                for successor in successors[window[-1]]
+            }
+    return level
 
 
 def observable_windows(cgs: CGS, state: str, k: int) -> Set[Window]:
