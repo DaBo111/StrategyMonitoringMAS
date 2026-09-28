@@ -93,25 +93,6 @@ tabulation is itself `Θ(|S|^k)`. Timing the whole pipeline:
 | 256 | 65 792 | 0.0480 | 0.0295 | 0.0774 | 62% |
 | 1024 | 1 049 600 | 0.9215 | 0.4891 | 1.4106 | 65% |
 
-It was the smaller, at 33% for `|S| = 1024`, until construction stopped
-recomputing addresses.
-
-### Construction counts addresses
-
-1C used to fit **1.79** against ln 5 = 1.61. The monitor was built by computing
-each window's address from its `k` states with `index_of` — a factor `k` the
-claim does not have. Construction now walks the windows in address order and
-takes each address as a running count; `index_of` is left for tables not
-tabulated in that order, and `M^S` addresses its obligations by extending their
-prefixes. 1C now fits **1.59**, and the `k = 2` monitor at `|S| = 1024` builds
-in 0.49 s instead of 1.82 s.
-
-What excess remains at `k = 2` (1B, 5B) is the memory hierarchy, not operation
-count. Per window, construction costs 0.35–0.39 µs up to 20 880 windows and
-0.45–0.47 µs from 46 872 to 1 049 600, flat over the last 22×; fitting
-`|S| ≥ 216` alone gives **2.02**. Tabulation, 65% of 5B, climbs from 0.58 to
-0.88 µs per window as its dict outgrows the cache.
-
 
 ## A CPython technicality on recursion depth
 
@@ -121,8 +102,7 @@ overflowed CPython's 1000-frame stack past roughly 800 terms. It is depth that
 binds, not size: growing `k` by gate *count* (2A) has no such ceiling and ran to
 `k = 16 381`. `complexity` is iterative for the same reason.
 
-Fixing it needed no rewriting of the formula, so there is no blowup to trade
-against. Measuring the two
+Measuring the two
 traversals separately:
 
 | | recursive | iterative | |
